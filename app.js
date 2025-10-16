@@ -1,6 +1,4 @@
-// 🧠 Arz App – Complete JS Functionality with Advanced Features + Backend Connection
-const API_BASE_URL = 'http://localhost:5000/api'; // Backend API base URL
-
+// 🧠 Arz App – Complete JS Functionality with Advanced Features
 let user = JSON.parse(localStorage.getItem("arzUser")) || { 
     username: "Guest", 
     profilePic: "https://via.placeholder.com/40x40/00bcd4/ffffff?text=G",
@@ -14,14 +12,13 @@ let posts = JSON.parse(localStorage.getItem("arzPosts")) || [];
 let currentTheme = localStorage.getItem("arzTheme") || "dark";
 let currentPage = 1;
 const postsPerPage = 6;
-let notifications = JSON.parse(localStorage.getItem("arzNotifications")) || [];
 
 // 🚀 Initial Render
 document.addEventListener("DOMContentLoaded", () => {
     initializeApp();
 });
 
-async function initializeApp() {
+function initializeApp() {
     // Set theme
     document.documentElement.setAttribute('data-theme', currentTheme);
     
@@ -31,19 +28,11 @@ async function initializeApp() {
         user = JSON.parse(savedUser);
     }
     
-    // Test backend connection
-    await testBackendConnection();
-    
     // Initialize all systems
     initializeThemeToggle();
-    initializeNotifications();
-    initializeSearch();
-    setupInfiniteScroll();
-    setupLazyLoading();
     
     // Render content based on page
     if (document.querySelector('.feed')) {
-        await loadPostsFromBackend();
         renderPosts();
         setupInteractions();
     }
@@ -58,6 +47,7 @@ async function initializeApp() {
     
     if (document.getElementById('registerForm')) {
         setupRegisterForm();
+        setupImagePreview();
     }
     
     if (document.querySelector('.contact-form')) {
@@ -75,195 +65,102 @@ async function initializeApp() {
     if (document.getElementById('searchInput')) {
         initializeSearch();
     }
+}
+
+// ✅ NEW: Profile Photo Preview Feature
+function setupImagePreview() {
+    const profilePicInput = document.getElementById('profilePic');
+    if (!profilePicInput) return;
     
-    updateUIForLoginStatus();
-}
-
-// 🔗 Backend Connection Functions
-async function apiRequest(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
-    const config = {
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        },
-        ...options
-    };
+    const previewContainer = document.createElement('div');
+    previewContainer.className = 'image-preview-container';
+    previewContainer.innerHTML = `
+        <div class="image-preview">
+            <img id="profilePreview" src="" alt="Profile Preview" style="display: none;">
+            <div class="placeholder-text">Your photo will appear here</div>
+        </div>
+    `;
     
-    if (options.body) {
-        config.body = JSON.stringify(options.body);
+    profilePicInput.parentNode.insertBefore(previewContainer, profilePicInput.nextSibling);
+    
+    const styles = `
+        .image-preview-container {
+            margin: 15px 0;
+            text-align: center;
+        }
+        .image-preview {
+            width: 150px;
+            height: 150px;
+            border: 3px dashed var(--accent-color);
+            border-radius: 50%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: var(--nav-bg);
+            position: relative;
+        }
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .placeholder-text {
+            color: #9ca3af;
+            font-size: 0.9em;
+        }
+        .custom-file-btn {
+            background: var(--accent-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-block;
+            margin: 10px 0;
+            transition: 0.3s;
+            border: none;
+            font-size: 1em;
+        }
+        .custom-file-btn:hover {
+            background: var(--hover-color);
+            transform: translateY(-2px);
+        }
+        #profilePic {
+            display: none;
+        }
+    `;
+    
+    if (!document.querySelector('#preview-styles')) {
+        const styleSheet = document.createElement('style');
+        styleSheet.id = 'preview-styles';
+        styleSheet.textContent = styles;
+        document.head.appendChild(styleSheet);
     }
     
-    try {
-        const response = await fetch(url, config);
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || 'API request failed');
-        }
-        
-        return data;
-    } catch (error) {
-        console.error('API Error:', error);
-        showNotification(error.message, 'error');
-        throw error;
-    }
-}
-
-async function testBackendConnection() {
-    try {
-        const response = await apiRequest('/test');
-        console.log('✅ Backend connected:', response);
-        return true;
-    } catch (error) {
-        console.error('❌ Backend connection failed:', error);
-        showNotification('Backend server not connected. Using local storage.', 'warning');
-        return false;
-    }
-}
-
-async function loadPostsFromBackend() {
-    try {
-        const data = await apiRequest('/posts');
-        if (data.posts && data.posts.length > 0) {
-            posts = data.posts;
-            localStorage.setItem("arzPosts", JSON.stringify(posts));
-        } else {
-            // If no posts from backend, create samples
-            createSamplePosts();
-        }
-        return posts;
-    } catch (error) {
-        console.error('Error loading posts from backend:', error);
-        // Fallback to local storage posts
-        if (posts.length === 0) {
-            createSamplePosts();
-        }
-        return posts;
-    }
-}
-
-async function savePostToBackend(postData) {
-    try {
-        const data = await apiRequest('/posts', {
-            method: 'POST',
-            body: postData
-        });
-        return data;
-    } catch (error) {
-        console.error('Error saving post to backend:', error);
-        // Fallback to local storage
-        return { post: postData };
-    }
-}
-
-async function updatePostInBackend(postId, updateData) {
-    try {
-        const data = await apiRequest(`/posts/${postId}`, {
-            method: 'PUT',
-            body: updateData
-        });
-        return data;
-    } catch (error) {
-        console.error('Error updating post in backend:', error);
-        // Fallback to local storage
-        return { success: true };
-    }
-}
-
-// 👤 User Authentication Functions
-async function registerUser(userData) {
-    try {
-        const data = await apiRequest('/register', {
-            method: 'POST',
-            body: userData
-        });
-        
-        user = data.user;
-        localStorage.setItem('arzUser', JSON.stringify(user));
-        showNotification('Registration successful!', 'success');
-        
-        return data;
-    } catch (error) {
-        throw error;
-    }
-}
-
-async function loginUser(credentials) {
-    try {
-        const data = await apiRequest('/login', {
-            method: 'POST',
-            body: credentials
-        });
-        
-        user = data.user;
-        localStorage.setItem('arzUser', JSON.stringify(user));
-        showNotification('Login successful!', 'success');
-        
-        return data;
-    } catch (error) {
-        throw error;
-    }
-}
-
-function logoutUser() {
-    user = {
-        username: "Guest", 
-        profilePic: "https://via.placeholder.com/40x40/00bcd4/ffffff?text=G",
-        email: "",
-        password: "",
-        following: [],
-        bookmarks: []
-    };
-    localStorage.removeItem('arzUser');
-    showNotification('Logged out successfully', 'info');
-    setTimeout(() => {
-        window.location.href = 'index.html';
-    }, 1000);
-}
-
-// Update UI based on login status
-function updateUIForLoginStatus() {
-    const loginBtn = document.querySelector('a[href="login.html"]');
-    const registerBtn = document.querySelector('a[href="register.html"]');
-    const uploadBtn = document.querySelector('a[href="upload.html"]');
-    const profileBtn = document.querySelector('a[href="profile.html"]');
+    const customButton = document.createElement('button');
+    customButton.type = 'button';
+    customButton.className = 'custom-file-btn';
+    customButton.innerHTML = '📷 Choose Profile Photo';
+    customButton.onclick = () => profilePicInput.click();
     
-    if (user && user.username !== "Guest") {
-        // User is logged in
-        if (loginBtn) {
-            loginBtn.textContent = 'Logout';
-            loginBtn.href = '#';
-            loginBtn.onclick = logoutUser;
+    previewContainer.appendChild(customButton);
+    
+    profilePicInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewImg = document.getElementById('profilePreview');
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+                document.querySelector('.placeholder-text').style.display = 'none';
+                showNotification('Profile photo selected successfully!', 'success');
+            };
+            reader.readAsDataURL(file);
         }
-        if (registerBtn) {
-            registerBtn.textContent = user.username;
-            registerBtn.href = 'profile.html';
-        }
-        if (uploadBtn) {
-            uploadBtn.style.display = 'block';
-        }
-        if (profileBtn) {
-            profileBtn.style.display = 'block';
-        }
-    } else {
-        // User is not logged in
-        if (loginBtn) {
-            loginBtn.textContent = 'Login';
-            loginBtn.href = 'login.html';
-            loginBtn.onclick = null;
-        }
-        if (registerBtn) {
-            registerBtn.textContent = 'Register';
-            registerBtn.href = 'register.html';
-        }
-        if (uploadBtn) {
-            uploadBtn.style.display = 'none';
-        }
-        if (profileBtn) {
-            profileBtn.style.display = 'none';
-        }
-    }
+    });
 }
 
 // 🌙 Theme Toggle Functionality
@@ -289,12 +186,7 @@ function toggleTheme() {
 }
 
 // 🔔 Notification System
-function initializeNotifications() {
-    updateNotificationBadge();
-}
-
 function showNotification(message, type = 'info') {
-    // Create notification element
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.innerHTML = `
@@ -304,79 +196,13 @@ function showNotification(message, type = 'info') {
         </div>
     `;
     
-    // Add styles if not exists
-    if (!document.querySelector('#notification-styles')) {
-        const styles = document.createElement('style');
-        styles.id = 'notification-styles';
-        styles.textContent = `
-            .notification {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: var(--card-bg);
-                color: var(--text-color);
-                padding: 15px 20px;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                border-left: 4px solid var(--accent-color);
-                z-index: 10000;
-                max-width: 300px;
-                animation: slideInRight 0.3s ease;
-            }
-            .notification-success { border-left-color: #4CAF50; }
-            .notification-error { border-left-color: #f44336; }
-            .notification-warning { border-left-color: #ff9800; }
-            .notification-content {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            .notification-close {
-                background: none;
-                border: none;
-                color: var(--text-color);
-                font-size: 18px;
-                cursor: pointer;
-                margin-left: 10px;
-            }
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-        `;
-        document.head.appendChild(styles);
-    }
-    
     document.body.appendChild(notification);
     
-    // Auto remove after 5 seconds
     setTimeout(() => {
         if (notification.parentElement) {
             notification.remove();
         }
     }, 5000);
-    
-    // Add to notifications array
-    const notificationObj = {
-        id: Date.now(),
-        type,
-        message,
-        timestamp: new Date().toISOString(),
-        read: false
-    };
-    notifications.unshift(notificationObj);
-    localStorage.setItem('arzNotifications', JSON.stringify(notifications));
-    updateNotificationBadge();
-}
-
-function updateNotificationBadge() {
-    const badge = document.querySelector('.notification-badge');
-    const unreadCount = notifications.filter(n => !n.read).length;
-    
-    if (badge) {
-        badge.textContent = unreadCount;
-        badge.style.display = unreadCount > 0 ? 'flex' : 'none';
-    }
 }
 
 // 🔍 Search and Filter System
@@ -432,91 +258,7 @@ function renderFilteredPosts(filteredPosts) {
     setupInteractions();
 }
 
-// 📜 Infinite Scroll
-function setupInfiniteScroll() {
-    window.addEventListener('scroll', () => {
-        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
-            loadMorePosts();
-        }
-    });
-}
-
-function loadMorePosts() {
-    const startIndex = currentPage * postsPerPage;
-    const endIndex = startIndex + postsPerPage;
-    const morePosts = posts.slice(startIndex, endIndex);
-    
-    if (morePosts.length > 0) {
-        renderMorePosts(morePosts);
-        currentPage++;
-        showNotification('Loaded more posts', 'info');
-    }
-}
-
-function renderMorePosts(morePosts) {
-    const feed = document.querySelector(".feed");
-    if (!feed) return;
-    
-    morePosts.forEach((post) => {
-        const postCard = createPostCard(post);
-        feed.appendChild(postCard);
-    });
-    
-    setupInteractions();
-}
-
-// 🖼️ Lazy Loading Images
-function setupLazyLoading() {
-    const images = document.querySelectorAll('.post-image[data-src]');
-    
-    const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                img.src = img.dataset.src;
-                img.classList.remove('lazy');
-                imageObserver.unobserve(img);
-            }
-        });
-    });
-    
-    images.forEach(img => imageObserver.observe(img));
-}
-
-// 🖋️ Post Creation Functions
-async function addPost(title, content, category, image = "") {
-    const newPost = {
-        id: Date.now(),
-        title,
-        content,
-        category,
-        image,
-        likes: 0,
-        dislikes: 0,
-        comments: [],
-        author: user.username,
-        authorPic: user.profilePic,
-        timestamp: new Date().toISOString(),
-        views: 0
-    };
-    
-    // Try to save to backend first
-    try {
-        const savedPost = await savePostToBackend(newPost);
-        posts.unshift(savedPost.post || newPost);
-    } catch (error) {
-        // Fallback to local storage
-        posts.unshift(newPost);
-    }
-    
-    localStorage.setItem("arzPosts", JSON.stringify(posts));
-    renderPosts();
-    
-    showNotification('Post created successfully!', 'success');
-    return newPost;
-}
-
-// 🏞️ Render Posts
+// 📜 Posts Rendering
 function renderPosts() {
     const feed = document.querySelector(".feed");
     if (!feed) return;
@@ -535,7 +277,6 @@ function renderPosts() {
     });
 
     setupInteractions();
-    setupLazyLoading();
 }
 
 function createPostCard(post) {
@@ -543,18 +284,18 @@ function createPostCard(post) {
     postCard.className = "post-card";
     postCard.innerHTML = `
         <div class="post-header">
-            <img src="${post.authorPic || user.profilePic}" alt="profile" class="profile-pic" 
+            <img src="${post.authorPic || 'https://via.placeholder.com/40x40/00bcd4/ffffff?text=U'}" 
+                 alt="profile" class="profile-pic" 
                  onerror="this.src='https://via.placeholder.com/40x40/00bcd4/ffffff?text=U'"/>
             <div>
                 <h3>${post.title}</h3>
-                <p>By: ${post.author || user.username}</p>
+                <p>By: ${post.author}</p>
                 <p class="category">${post.category}</p>
             </div>
         </div>
 
         ${post.image ? `
             <img src="${post.image}" alt="${post.title}" class="post-image" 
-                 data-src="${post.image}" 
                  onclick="openImageModal('${post.image}')"
                  onerror="this.style.display='none'"/>
         ` : ""}
@@ -590,7 +331,158 @@ function createPostCard(post) {
     return postCard;
 }
 
+// 🧩 Setup All Interactions
+function setupInteractions() {
+    setupLikeButtons();
+    setupDislikeButtons();
+    setupCommentToggles();
+    setupCommentButtons();
+    setupBookmarkButtons();
+}
+
+// ✅ FIXED: Comment System
+function setupCommentToggles() {
+    document.querySelectorAll(".comment-toggle").forEach((btn) => {
+        btn.addEventListener("click", function() {
+            const postId = this.getAttribute("data-id");
+            const section = document.getElementById(`comments-${postId}`);
+            const isHidden = section.style.display === "none";
+            section.style.display = isHidden ? "block" : "none";
+            
+            if (isHidden) {
+                renderComments(parseInt(postId));
+            }
+        });
+    });
+}
+
+function setupCommentButtons() {
+    document.querySelectorAll(".add-comment").forEach((btn) => {
+        btn.addEventListener("click", function() {
+            const postId = parseInt(this.getAttribute("data-id"));
+            const input = this.previousElementSibling;
+            const text = input.value.trim();
+            
+            if (!text) {
+                showNotification('Please write a comment!', 'error');
+                return;
+            }
+
+            addCommentToPost(postId, text);
+            input.value = "";
+        });
+    });
+    
+    document.querySelectorAll(".comment-input").forEach(input => {
+        input.addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                const postId = parseInt(this.getAttribute("data-id"));
+                const text = this.value.trim();
+                
+                if (text) {
+                    addCommentToPost(postId, text);
+                    this.value = "";
+                }
+            }
+        });
+    });
+}
+
+function addCommentToPost(postId, text) {
+    const post = posts.find((p) => p.id === postId);
+    if (!post) return;
+
+    if (!Array.isArray(post.comments)) {
+        post.comments = [];
+    }
+
+    const newComment = {
+        id: Date.now(),
+        username: user.username,
+        profilePic: user.profilePic,
+        text: text,
+        time: new Date().toISOString(),
+        replies: []
+    };
+
+    post.comments.push(newComment);
+    localStorage.setItem("arzPosts", JSON.stringify(posts));
+    renderComments(postId);
+    
+    const commentBtn = document.querySelector(`.comment-toggle[data-id="${postId}"]`);
+    if (commentBtn) {
+        commentBtn.innerHTML = `💬 Comments (${post.comments.length})`;
+    }
+    
+    showNotification('Comment added successfully!', 'success');
+}
+
+function renderComments(postId) {
+    const post = posts.find((p) => p.id === postId);
+    if (!post) return;
+    
+    const section = document.getElementById(`comments-list-${postId}`);
+    if (!section) return;
+    
+    section.innerHTML = "";
+
+    (post.comments || []).forEach((comment) => {
+        const commentDiv = document.createElement("div");
+        commentDiv.className = "comment";
+        commentDiv.innerHTML = `
+            <div class="comment-header">
+                <img src="${comment.profilePic}" alt="profile" class="comment-pic" 
+                     onerror="this.src='https://via.placeholder.com/35x35/00bcd4/ffffff?text=U'"/>
+                <strong>${comment.username}</strong>
+                <small>${new Date(comment.time).toLocaleDateString()}</small>
+            </div>
+            <p>${comment.text}</p>
+        `;
+        section.appendChild(commentDiv);
+    });
+}
+
+// 👍 Like Functionality
+function setupLikeButtons() {
+    document.querySelectorAll(".like-btn").forEach((btn) => {
+        btn.addEventListener("click", function() {
+            const postId = parseInt(this.getAttribute("data-id"));
+            const post = posts.find((p) => p.id === postId);
+            if (post) {
+                post.likes = (post.likes || 0) + 1;
+                localStorage.setItem("arzPosts", JSON.stringify(posts));
+                this.innerHTML = `👍 Like (${post.likes})`;
+                showNotification('Liked the post!', 'success');
+            }
+        });
+    });
+}
+
+// 👎 Dislike Functionality
+function setupDislikeButtons() {
+    document.querySelectorAll(".dislike-btn").forEach((btn) => {
+        btn.addEventListener("click", function() {
+            const postId = parseInt(this.getAttribute("data-id"));
+            const post = posts.find((p) => p.id === postId);
+            if (post) {
+                post.dislikes = (post.dislikes || 0) + 1;
+                localStorage.setItem("arzPosts", JSON.stringify(posts));
+                this.innerHTML = `👎 Dislike (${post.dislikes})`;
+            }
+        });
+    });
+}
+
 // 📚 Bookmark System
+function setupBookmarkButtons() {
+    document.querySelectorAll(".bookmark-btn").forEach((btn) => {
+        btn.addEventListener("click", function() {
+            const postId = parseInt(this.getAttribute("data-id"));
+            toggleBookmark(postId);
+        });
+    });
+}
+
 function isBookmarked(postId) {
     return user.bookmarks && user.bookmarks.includes(postId);
 }
@@ -618,464 +510,12 @@ function updateBookmarkButton(postId) {
     }
 }
 
-// 🖼️ Image Modal
-function openImageModal(imageSrc) {
-    const modal = document.createElement('div');
-    modal.className = 'image-modal';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <img src="${imageSrc}" alt="Full size">
-            <button class="close-modal" onclick="this.parentElement.parentElement.remove()">×</button>
-        </div>
-    `;
-    
-    // Add modal styles
-    if (!document.querySelector('#modal-styles')) {
-        const styles = document.createElement('style');
-        styles.id = 'modal-styles';
-        styles.textContent = `
-            .image-modal {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.8);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-            }
-            .image-modal .modal-content {
-                position: relative;
-                max-width: 90%;
-                max-height: 90%;
-            }
-            .image-modal img {
-                max-width: 100%;
-                max-height: 100%;
-                border-radius: 10px;
-            }
-            .close-modal {
-                position: absolute;
-                top: -40px;
-                right: 0;
-                background: #f44336;
-                color: white;
-                border: none;
-                border-radius: 50%;
-                width: 30px;
-                height: 30px;
-                cursor: pointer;
-                font-size: 18px;
-            }
-        `;
-        document.head.appendChild(styles);
-    }
-    
-    document.body.appendChild(modal);
-    
-    modal.onclick = (e) => {
-        if (e.target === modal) modal.remove();
-    };
-}
-
-// 👤 User Profile System
-function renderUserProfile() {
-    const profileContainer = document.querySelector('.profile-page');
-    if (!profileContainer) return;
-    
-    const userPosts = posts.filter(post => post.author === user.username);
-    
-    profileContainer.innerHTML = `
-        <div class="profile-header">
-            <img src="${user.profilePic}" alt="Profile" class="profile-large">
-            <div class="profile-info">
-                <h2>${user.username}</h2>
-                <p>Member since ${new Date().getFullYear()}</p>
-                <div class="stats">
-                    <span>Posts: ${userPosts.length}</span>
-                    <span>Likes: ${calculateTotalLikes(userPosts)}</span>
-                    <span>Following: ${user.following ? user.following.length : 0}</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="user-posts">
-            <h3>My Creations</h3>
-            <div class="posts-grid">
-                ${userPosts.length > 0 ? 
-                    userPosts.map(post => `
-                        <div class="profile-post-card">
-                            <h4>${post.title}</h4>
-                            <p class="category">${post.category}</p>
-                            <p>${post.content.substring(0, 100)}...</p>
-                            <div class="post-stats">
-                                <span>👍 ${post.likes}</span>
-                                <span>💬 ${post.comments ? post.comments.length : 0}</span>
-                            </div>
-                        </div>
-                    `).join('') : 
-                    '<p class="no-posts">No posts yet. <a href="upload.html">Create your first post!</a></p>'
-                }
-            </div>
-        </div>
-    `;
-}
-
-function calculateTotalLikes(userPosts) {
-    return userPosts.reduce((total, post) => total + (post.likes || 0), 0);
-}
-
-// 🧩 Setup All Interactions
-function setupInteractions() {
-    setupLikeButtons();
-    setupDislikeButtons();
-    setupCommentToggles();
-    setupCommentButtons();
-    setupBookmarkButtons();
-}
-
-function setupBookmarkButtons() {
-    document.querySelectorAll(".bookmark-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            const postId = parseInt(btn.getAttribute("data-id"));
-            toggleBookmark(postId);
-        });
-    });
-}
-
-// 👍 Like Functionality
-function setupLikeButtons() {
-    document.querySelectorAll(".like-btn").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-            const postId = parseInt(btn.getAttribute("data-id"));
-            const post = posts.find((p) => p.id === postId);
-            if (post) {
-                post.likes = (post.likes || 0) + 1;
-                
-                // Try to update in backend
-                try {
-                    await updatePostInBackend(postId, { likes: post.likes });
-                } catch (error) {
-                    // Fallback to local storage
-                    localStorage.setItem("arzPosts", JSON.stringify(posts));
-                }
-                
-                btn.innerText = `👍 Like (${post.likes})`;
-                showNotification('Liked the post!', 'success');
-            }
-        });
-    });
-}
-
-// 👎 Dislike Functionality
-function setupDislikeButtons() {
-    document.querySelectorAll(".dislike-btn").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-            const postId = parseInt(btn.getAttribute("data-id"));
-            const post = posts.find((p) => p.id === postId);
-            if (post) {
-                post.dislikes = (post.dislikes || 0) + 1;
-                
-                // Try to update in backend
-                try {
-                    await updatePostInBackend(postId, { dislikes: post.dislikes });
-                } catch (error) {
-                    // Fallback to local storage
-                    localStorage.setItem("arzPosts", JSON.stringify(posts));
-                }
-                
-                btn.innerText = `👎 Dislike (${post.dislikes})`;
-            }
-        });
-    });
-}
-
-// 💬 Comment System
-function setupCommentToggles() {
-    document.querySelectorAll(".comment-toggle").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            const postId = btn.getAttribute("data-id");
-            const section = document.getElementById(`comments-${postId}`);
-            const isHidden = section.style.display === "none";
-            section.style.display = isHidden ? "block" : "none";
-            
-            if (isHidden) {
-                renderComments(parseInt(postId));
-            }
-        });
-    });
-}
-
-function setupCommentButtons() {
-    document.querySelectorAll(".add-comment").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-            const postId = parseInt(btn.getAttribute("data-id"));
-            const input = btn.previousElementSibling;
-            const text = input.value.trim();
-            
-            if (!text) {
-                showNotification('Please write a comment!', 'error');
-                return;
-            }
-
-            await addCommentToPost(postId, text);
-            input.value = "";
-        });
-    });
-    
-    document.querySelectorAll(".comment-input").forEach(input => {
-        input.addEventListener("keypress", async (e) => {
-            if (e.key === "Enter") {
-                const postId = parseInt(input.getAttribute("data-id"));
-                const text = input.value.trim();
-                
-                if (text) {
-                    await addCommentToPost(postId, text);
-                    input.value = "";
-                }
-            }
-        });
-    });
-}
-
-async function addCommentToPost(postId, text) {
-    const post = posts.find((p) => p.id === postId);
-    if (!post) return;
-
-    if (!Array.isArray(post.comments)) {
-        post.comments = [];
-    }
-
-    const newComment = {
-        id: Date.now(),
-        username: user.username,
-        profilePic: user.profilePic,
-        text,
-        time: new Date().toISOString(),
-        replies: []
-    };
-
-    post.comments.push(newComment);
-    
-    // Try to update in backend
-    try {
-        await updatePostInBackend(postId, { comments: post.comments });
-    } catch (error) {
-        // Fallback to local storage
-        localStorage.setItem("arzPosts", JSON.stringify(posts));
-    }
-    
-    renderComments(postId);
-    
-    const commentBtn = document.querySelector(`.comment-toggle[data-id="${postId}"]`);
-    if (commentBtn) {
-        commentBtn.innerText = `💬 Comments (${post.comments.length})`;
-    }
-    
-    showNotification('Comment added!', 'success');
-}
-
-function renderComments(postId) {
-    const post = posts.find((p) => p.id === postId);
-    if (!post) return;
-    
-    const section = document.querySelector(`#comments-list-${postId}`);
-    if (!section) return;
-    
-    section.innerHTML = "";
-
-    (post.comments || []).forEach((comment) => {
-        const commentDiv = document.createElement("div");
-        commentDiv.className = "comment";
-        commentDiv.innerHTML = `
-            <div class="comment-header">
-                <img src="${comment.profilePic}" alt="profile" class="comment-pic" 
-                     onerror="this.src='https://via.placeholder.com/35x35/00bcd4/ffffff?text=U'"/>
-                <strong>${comment.username}</strong>
-            </div>
-            <p>${comment.text}</p>
-            <button class="reply-btn" data-cid="${comment.id}" data-pid="${postId}">↩️ Reply</button>
-            
-            <div class="replies">
-                ${(comment.replies || []).map(reply => `
-                    <div class="reply">
-                        <div class="comment-header">
-                            <img src="${reply.profilePic}" class="reply-pic" 
-                                 onerror="this.src='https://via.placeholder.com/35x35/00bcd4/ffffff?text=U'"/>
-                            <strong>${reply.username}</strong>
-                        </div>
-                        <p>${reply.text}</p>
-                    </div>
-                `).join('')}
-            </div>
-            
-            <input type="text" placeholder="Write a reply..." class="reply-input" data-cid="${comment.id}" data-pid="${postId}" style="display:none;">
-            <button class="send-reply" data-cid="${comment.id}" data-pid="${postId}" style="display:none;">Send Reply</button>
-        `;
-        section.appendChild(commentDiv);
-    });
-
-    setupReplyButtons();
-}
-
-function setupReplyButtons() {
-    document.querySelectorAll(".reply-btn").forEach((btn) => {
-        btn.onclick = () => {
-            const cid = btn.getAttribute("data-cid");
-            const pid = btn.getAttribute("data-pid");
-            const input = btn.nextElementSibling.nextElementSibling;
-            const sendBtn = input.nextElementSibling;
-            
-            input.style.display = "block";
-            sendBtn.style.display = "block";
-        };
-    });
-
-    document.querySelectorAll(".send-reply").forEach((btn) => {
-        btn.onclick = async () => {
-            const cid = parseInt(btn.getAttribute("data-cid"));
-            const pid = parseInt(btn.getAttribute("data-pid"));
-            const input = btn.previousElementSibling;
-            const text = input.value.trim();
-            
-            if (!text) {
-                showNotification('Please write a reply!', 'error');
-                return;
-            }
-
-            const post = posts.find((p) => p.id === pid);
-            if (!post) return;
-            
-            const comment = post.comments.find((c) => c.id === cid);
-            if (!comment) return;
-            
-            if (!Array.isArray(comment.replies)) {
-                comment.replies = [];
-            }
-            
-            comment.replies.push({
-                username: user.username,
-                profilePic: user.profilePic,
-                text
-            });
-            
-            // Try to update in backend
-            try {
-                await updatePostInBackend(pid, { comments: post.comments });
-            } catch (error) {
-                // Fallback to local storage
-                localStorage.setItem("arzPosts", JSON.stringify(posts));
-            }
-            
-            renderComments(pid);
-            
-            input.value = "";
-            input.style.display = "none";
-            btn.style.display = "none";
-            
-            showNotification('Reply sent!', 'success');
-        };
-    });
-}
-
-// 📤 Upload Form Setup
-function setupUploadForm() {
-    const form = document.getElementById('uploadForm');
-    if (!form) return;
-    
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const title = document.getElementById('title').value;
-        const category = document.getElementById('category').value;
-        const content = document.getElementById('description').value;
-        const fileInput = document.getElementById('fileInput');
-        
-        if (!title || !category || !content) {
-            showNotification('Please fill all fields!', 'error');
-            return;
-        }
-        
-        if (category === 'Select Category') {
-            showNotification('Please select a category!', 'error');
-            return;
-        }
-        
-        if (fileInput.files.length === 0) {
-            showNotification('Please select an image!', 'error');
-            return;
-        }
-
-        const file = fileInput.files[0];
-        const reader = new FileReader();
-        
-        reader.onload = async function(e) {
-            await addPost(title, content, category, e.target.result);
-            form.reset();
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
-        };
-        
-        reader.onerror = function() {
-            showNotification('Error reading file!', 'error');
-        };
-        
-        reader.readAsDataURL(file);
-    });
-}
-
-// 🔐 Login Form Setup
-function setupLoginForm() {
-    const form = document.querySelector('#login form');
-    if (!form) return;
-    
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const email = form.querySelector('input[type="email"]').value;
-        const password = form.querySelector('input[type="password"]').value;
-        
-        if (!email || !password) {
-            showNotification('Please fill all fields!', 'error');
-            return;
-        }
-        
-        try {
-            await loginUser({ email, password });
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1000);
-        } catch (error) {
-            // Login failed, try local storage fallback
-            const storedUser = localStorage.getItem('arzUser');
-            if (storedUser) {
-                const userData = JSON.parse(storedUser);
-                if (userData.email === email && userData.password === password) {
-                    user = userData;
-                    localStorage.setItem('arzUser', JSON.stringify(user));
-                    showNotification('Login successful!', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1000);
-                } else {
-                    showNotification('Invalid email or password!', 'error');
-                }
-            } else {
-                showNotification('No user found. Please register first.', 'error');
-            }
-        }
-    });
-}
-
 // 📝 Register Form Setup
 function setupRegisterForm() {
     const form = document.getElementById('registerForm');
     if (!form) return;
     
-    form.addEventListener('submit', async function(e) {
+    form.addEventListener('submit', function(e) {
         e.preventDefault();
         
         const username = document.getElementById('username').value;
@@ -1096,30 +536,23 @@ function setupRegisterForm() {
         const file = profilePicInput.files[0];
         const reader = new FileReader();
         
-        reader.onload = async function(e) {
-            const userData = {
-                username,
-                email,
-                password,
+        reader.onload = function(e) {
+            const newUser = {
+                username: username,
+                email: email,
+                password: password,
                 profilePic: e.target.result,
                 following: [],
                 bookmarks: []
             };
             
-            try {
-                await registerUser(userData);
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1500);
-            } catch (error) {
-                // Registration failed, fallback to local storage
-                localStorage.setItem('arzUser', JSON.stringify(userData));
-                user = userData;
-                showNotification('Account created successfully (local storage)!', 'success');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1500);
-            }
+            localStorage.setItem('arzUser', JSON.stringify(newUser));
+            user = newUser;
+            
+            showNotification('Account created successfully! Welcome to Arz!', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
         };
         
         reader.onerror = function() {
@@ -1127,18 +560,6 @@ function setupRegisterForm() {
         };
         
         reader.readAsDataURL(file);
-    });
-}
-
-// 📧 Contact Form Setup
-function setupContactForm() {
-    const form = document.querySelector('.contact-form');
-    if (!form) return;
-    
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        showNotification('Thank you for your message! We will get back to you soon.', 'success');
-        form.reset();
     });
 }
 
@@ -1184,53 +605,180 @@ function setupDonation() {
     }
 }
 
+// 📤 Upload Form Setup
+function setupUploadForm() {
+    const form = document.getElementById('uploadForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const title = document.getElementById('title').value;
+        const category = document.getElementById('category').value;
+        const content = document.getElementById('description').value;
+        const fileInput = document.getElementById('fileInput');
+        
+        if (!title || !category || !content) {
+            showNotification('Please fill all fields!', 'error');
+            return;
+        }
+        
+        if (fileInput.files.length === 0) {
+            showNotification('Please select an image!', 'error');
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const newPost = {
+                id: Date.now(),
+                title: title,
+                content: content,
+                category: category,
+                image: e.target.result,
+                likes: 0,
+                dislikes: 0,
+                comments: [],
+                author: user.username,
+                authorPic: user.profilePic,
+                timestamp: new Date().toISOString(),
+                views: 0
+            };
+            
+            posts.unshift(newPost);
+            localStorage.setItem("arzPosts", JSON.stringify(posts));
+            
+            showNotification('Post created successfully!', 'success');
+            form.reset();
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        };
+        
+        reader.onerror = function() {
+            showNotification('Error reading file!', 'error');
+        };
+        
+        reader.readAsDataURL(file);
+    });
+}
+
+// 🔐 Login Form Setup
+function setupLoginForm() {
+    const form = document.querySelector('#login form');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const email = form.querySelector('input[type="email"]').value;
+        const password = form.querySelector('input[type="password"]').value;
+        
+        if (!email || !password) {
+            showNotification('Please fill all fields!', 'error');
+            return;
+        }
+        
+        const storedUser = localStorage.getItem('arzUser');
+        if (storedUser) {
+            const userData = JSON.parse(storedUser);
+            if (userData.email === email && userData.password === password) {
+                showNotification('Login successful!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            } else {
+                showNotification('Invalid email or password!', 'error');
+            }
+        } else {
+            showNotification('No user found. Please register first.', 'error');
+        }
+    });
+}
+
+// 📧 Contact Form Setup
+function setupContactForm() {
+    const form = document.querySelector('.contact-form');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        showNotification('Thank you for your message! We will get back to you soon.', 'success');
+        form.reset();
+    });
+}
+
 // 📊 Sample Posts
 function createSamplePosts() {
     const samplePosts = [
         {
             id: 1,
-            title: "Welcome to Arz App!",
-            content: "This is a sample post to showcase the app features. You can create posts, upload images, like, comment, and much more!",
-            category: "General",
+            title: "Sunset Dreams",
+            content: "The beauty of nature always inspires me to create beautiful artwork that captures the essence of peace and tranquility.",
+            category: "Photography",
             image: "",
-            likes: 15,
-            dislikes: 2,
+            likes: 12,
+            dislikes: 1,
             comments: [
                 {
                     id: 1,
-                    username: "Admin",
-                    profilePic: "https://via.placeholder.com/35x35/00bcd4/ffffff?text=A",
-                    text: "Welcome everyone!",
+                    username: "ArtLover",
+                    profilePic: "https://via.placeholder.com/35x35/ff4081/ffffff?text=A",
+                    text: "Amazing capture! The colors are breathtaking.",
                     time: new Date().toISOString(),
                     replies: []
                 }
             ],
-            author: "Admin",
-            authorPic: "https://via.placeholder.com/40x40/00bcd4/ffffff?text=A",
+            author: "NatureLover",
+            authorPic: "https://via.placeholder.com/40x40/ff4081/ffffff?text=N",
             timestamp: new Date().toISOString(),
-            views: 42
+            views: 45
         },
         {
             id: 2,
-            title: "Amazing Artwork",
-            content: "Check out this beautiful digital painting I created!",
-            category: "Art",
-            image: "https://via.placeholder.com/400x300/ff6b6b/ffffff?text=Art+Sample",
-            likes: 28,
-            dislikes: 1,
-            comments: [],
-            author: "Artist123",
-            authorPic: "https://via.placeholder.com/40x40/ff6b6b/ffffff?text=AR",
+            title: "Whispers of Night",
+            content: "The stars whisper secrets to the night, while the moon listens silently. In the darkness, creativity finds its light.",
+            category: "Poetry",
+            image: "",
+            likes: 25,
+            dislikes: 2,
+            comments: [
+                {
+                    id: 1,
+                    username: "Ali",
+                    profilePic: "https://via.placeholder.com/35x35/00bcd4/ffffff?text=A",
+                    text: "Beautiful lines! This really touched my heart.",
+                    time: new Date().toISOString(),
+                    replies: []
+                }
+            ],
+            author: "WordWeaver",
+            authorPic: "https://via.placeholder.com/40x40/00bcd4/ffffff?text=W",
             timestamp: new Date().toISOString(),
-            views: 67
+            views: 89
         }
     ];
     
-    posts = [...samplePosts, ...posts];
+    posts = samplePosts;
     localStorage.setItem("arzPosts", JSON.stringify(posts));
 }
 
-// Export functions for global access
-window.toggleTheme = toggleTheme;
-window.openImageModal = openImageModal;
-window.logoutUser = logoutUser;
+// 🖼️ Image Modal
+function openImageModal(imageSrc) {
+    const modal = document.createElement('div');
+    modal.className = 'image-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <img src="${imageSrc}" alt="Full size">
+            <button class="close-modal" onclick="this.parentElement.parentElement.remove()">×</button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+}
