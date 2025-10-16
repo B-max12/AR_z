@@ -6,40 +6,414 @@
   <title>Donate - Arz</title>
   <link rel="stylesheet" href="style.css">
   <link rel="shortcut icon" href="favicon 1.ico" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-  <header id="navbar"></header>
+  <!-- Fixed Navigation -->
+  <header>
+    <nav>
+      <div class="logo" onclick="window.location.href='index.html'">ARZ</div>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="upload.html">Upload</a>
+        <a href="login.html">Login</a>
+        <a href="register.html">Register</a>
+        <a href="profile.html">Profile</a>
+        <a href="donate.html" class="active donate-btn">Donate</a>
+        <button class="theme-toggle" title="Toggle theme">🌙</button>
+      </div>
+    </nav>
+  </header>
 
   <section class="page donate-page">
-    <h2>Support Arz</h2>
-    <p>Help us keep Arz alive — empowering creators, poets, and dreamers across the globe.</p>
+    <h2>Support Arz Creative Community</h2>
+    <p>Your donation helps artists, writers, and creators share their work with the world. Every contribution makes a difference! 🌟</p>
 
     <div class="donate-box">
       <h3>Select Donation Amount</h3>
       <div class="donate-options">
-        <button>$5</button>
-        <button>$10</button>
-        <button>$20</button>
-        <button>$50</button>
+        <button onclick="selectAmount(5)">$5</button>
+        <button onclick="selectAmount(10)">$10</button>
+        <button onclick="selectAmount(20)">$20</button>
+        <button onclick="selectAmount(50)">$50</button>
+        <button onclick="selectAmount(100)">$100</button>
       </div>
-      <input type="text" placeholder="Or enter custom amount" />
-      <button class="donate-submit">Donate Now</button>
+      
+      <div class="custom-amount">
+        <input type="number" id="customAmount" placeholder="Or enter custom amount" min="1" max="1000" />
+        <span class="currency">$</span>
+      </div>
+      
+      <div class="payment-methods">
+        <h4>Choose Payment Method</h4>
+        <div class="payment-options">
+          <label class="payment-option">
+            <input type="radio" name="payment" value="card" checked>
+            <i class="fas fa-credit-card"></i> Credit/Debit Card
+          </label>
+          <label class="payment-option">
+            <input type="radio" name="payment" value="paypal">
+            <i class="fab fa-paypal"></i> PayPal
+          </label>
+          <label class="payment-option">
+            <input type="radio" name="payment" value="bank">
+            <i class="fas fa-university"></i> Bank Transfer
+          </label>
+        </div>
+      </div>
+      
+      <button class="donate-submit" onclick="processDonation()">
+        <i class="fas fa-heart"></i> Donate Now
+      </button>
+      
+      <p class="donate-note">💫 100% of donations go directly to supporting creators</p>
+    </div>
+
+    <!-- Transaction Details Section -->
+    <div class="transaction-details">
+      <h3>Transaction Information</h3>
+      <div class="bank-details">
+        <div class="bank-info">
+          <h4><i class="fas fa-university"></i> Bank Transfer Details</h4>
+          <div class="detail-item">
+            <span class="label">Bank Name:</span>
+            <span class="value">HBL Bank Pakistan</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Account Title:</span>
+            <span class="value">Arz Creative Platform</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Account Number:</span>
+            <span class="value">0123 4567 8901 2345</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">IBAN:</span>
+            <span class="value">PK36 HABB 0000 0123 4567 8901</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Branch Code:</span>
+            <span class="value">0123</span>
+          </div>
+        </div>
+        
+        <div class="digital-wallets">
+          <h4><i class="fas fa-mobile-alt"></i> Digital Wallets</h4>
+          <div class="wallet-option">
+            <i class="fas fa-qrcode"></i>
+            <div>
+              <strong>JazzCash</strong>
+              <span>0300-1234567</span>
+            </div>
+          </div>
+          <div class="wallet-option">
+            <i class="fas fa-qrcode"></i>
+            <div>
+              <strong>EasyPaisa</strong>
+              <span>0312-3456789</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <div id="footer-placeholder"></div>
-<script>
-    fetch("footer.html")
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById("footer-placeholder").innerHTML = data;
-        });
-</script>
+  <!-- Fixed Footer -->
+  <footer class="universal-footer">
+    <div class="footer-links">
+      <button onclick="window.location.href='privacy.html'">Privacy Policy</button>
+      <button onclick="window.location.href='terms.html'">Terms & Conditions</button>
+      <button onclick="window.location.href='contact.html'">Contact Us</button>
+      <button onclick="window.location.href='donate.html'">Donate</button>
+      <button onclick="window.location.href='follow.html'">Follow Us</button>
+    </div>
 
+    <div class="footer-motive">
+      <h3>🌟 Our Mission</h3>
+      <p>
+        At <strong>Arz</strong>, we believe creativity has the power to connect hearts,  
+        inspire dreams, and build a world full of imagination.  
+        Your support helps us empower artists worldwide.
+      </p>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2025 Arz Creative Platform | Built with ❤️ by <strong>Awab Hammad</strong></p>
+    </div>
+  </footer>
 
   <script>
-    fetch("navbar.html").then(r=>r.text()).then(d=>document.getElementById("navbar").innerHTML=d);
-    fetch("footer.html").then(r=>r.text()).then(d=>document.getElementById("footer").innerHTML=d);
+    let selectedAmount = 10;
+    let selectedPayment = 'card';
+    
+    // Amount selection
+    function selectAmount(amount) {
+      selectedAmount = amount;
+      document.getElementById('customAmount').value = amount;
+      
+      // Update button styles
+      document.querySelectorAll('.donate-options button').forEach(btn => {
+        btn.style.background = 'var(--accent-color)';
+      });
+      event.target.style.background = 'var(--secondary-color)';
+    }
+    
+    // Custom amount input
+    document.getElementById('customAmount')?.addEventListener('input', function() {
+      selectedAmount = parseInt(this.value) || 0;
+    });
+    
+    // Payment method selection
+    document.querySelectorAll('input[name="payment"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        selectedPayment = this.value;
+      });
+    });
+    
+    // Process donation
+    function processDonation() {
+      if (!selectedAmount || selectedAmount < 1) {
+        showNotification('Please select or enter a valid amount!', 'error');
+        return;
+      }
+      
+      const paymentMethods = {
+        'card': 'Credit/Debit Card',
+        'paypal': 'PayPal',
+        'bank': 'Bank Transfer'
+      };
+      
+      const message = `
+        🎉 Thank you for your donation of $${selectedAmount}!
+        Payment Method: ${paymentMethods[selectedPayment]}
+        Transaction Details have been sent to your email.
+        Your support means the world to our creative community! 💫
+      `;
+      
+      showNotification(message, 'success');
+      
+      // Reset form
+      document.getElementById('customAmount').value = '';
+      document.querySelectorAll('.donate-options button').forEach(btn => {
+        btn.style.background = 'var(--accent-color)';
+      });
+      selectedAmount = 10;
+    }
+    
+    // Notification function
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type}`;
+      notification.innerHTML = `
+        <div class="notification-content">
+          <span class="notification-message">${message}</span>
+          <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+        </div>
+      `;
+      
+      // Add styles if not exists
+      if (!document.querySelector('#notification-styles')) {
+        const styles = document.createElement('style');
+        styles.id = 'notification-styles';
+        styles.textContent = `
+          .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border-left: 4px solid var(--accent-color);
+            z-index: 10000;
+            max-width: 400px;
+            animation: slideInRight 0.3s ease;
+          }
+          .notification-success { border-left-color: #4CAF50; }
+          .notification-error { border-left-color: #f44336; }
+          .notification-warning { border-left-color: #ff9800; }
+          .notification-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .notification-close {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 18px;
+            cursor: pointer;
+            margin-left: 10px;
+          }
+          @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+        `;
+        document.head.appendChild(styles);
+      }
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        if (notification.parentElement) {
+          notification.remove();
+        }
+      }, 6000);
+    }
   </script>
+  
+  <style>
+    /* Additional Donate Page Styles */
+    .custom-amount {
+      position: relative;
+      margin: 20px 0;
+    }
+    
+    .custom-amount input {
+      width: 100%;
+      padding: 12px 40px 12px 15px;
+      border: none;
+      border-radius: 8px;
+      background: var(--nav-bg);
+      color: var(--text-color);
+      font-size: 1.1em;
+    }
+    
+    .currency {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+    
+    .payment-methods {
+      margin: 25px 0;
+      text-align: left;
+    }
+    
+    .payment-methods h4 {
+      color: var(--accent-color);
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    
+    .payment-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .payment-option {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      background: var(--nav-bg);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    
+    .payment-option:hover {
+      background: var(--card-bg);
+    }
+    
+    .payment-option input {
+      margin-right: 10px;
+    }
+    
+    .payment-option i {
+      margin-right: 10px;
+      color: var(--accent-color);
+      width: 20px;
+    }
+    
+    .donate-note {
+      margin-top: 15px;
+      font-size: 0.9em;
+      color: #9ca3af;
+      font-style: italic;
+    }
+    
+    .transaction-details {
+      margin-top: 50px;
+      padding: 30px;
+      background: var(--card-bg);
+      border-radius: 15px;
+      text-align: left;
+    }
+    
+    .transaction-details h3 {
+      color: var(--accent-color);
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    
+    .bank-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+    
+    .bank-info, .digital-wallets {
+      padding: 20px;
+      background: var(--nav-bg);
+      border-radius: 10px;
+    }
+    
+    .bank-info h4, .digital-wallets h4 {
+      color: var(--secondary-color);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--bg-color);
+    }
+    
+    .label {
+      font-weight: bold;
+      color: var(--text-color);
+    }
+    
+    .value {
+      color: #9ca3af;
+      font-family: monospace;
+    }
+    
+    .wallet-option {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 12px;
+      background: var(--bg-color);
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    
+    .wallet-option i {
+      font-size: 1.5em;
+      color: var(--accent-color);
+    }
+    
+    @media (max-width: 768px) {
+      .bank-details {
+        grid-template-columns: 1fr;
+      }
+      
+      .payment-options {
+        flex-direction: column;
+      }
+    }
+  </style>
 </body>
 </html>
