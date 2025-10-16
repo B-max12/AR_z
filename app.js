@@ -67,7 +67,7 @@ function initializeApp() {
     }
 }
 
-// ✅ NEW: Profile Photo Preview Feature
+// ✅ FIXED: Profile Photo Preview Feature
 function setupImagePreview() {
     const profilePicInput = document.getElementById('profilePic');
     if (!profilePicInput) return;
@@ -187,6 +187,11 @@ function toggleTheme() {
 
 // 🔔 Notification System
 function showNotification(message, type = 'info') {
+    // Remove existing notifications first
+    document.querySelectorAll('.notification').forEach(notification => {
+        notification.remove();
+    });
+    
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.innerHTML = `
@@ -202,7 +207,7 @@ function showNotification(message, type = 'info') {
         if (notification.parentElement) {
             notification.remove();
         }
-    }, 5000);
+    }, 4000);
 }
 
 // 🔍 Search and Filter System
@@ -331,8 +336,13 @@ function createPostCard(post) {
     return postCard;
 }
 
-// 🧩 Setup All Interactions
+// 🧩 Setup All Interactions - ✅ FIXED DOUBLE EVENT LISTENERS
 function setupInteractions() {
+    // First remove all existing event listeners by replacing elements
+    document.querySelectorAll('.like-btn, .dislike-btn, .comment-toggle, .add-comment, .bookmark-btn').forEach(btn => {
+        btn.replaceWith(btn.cloneNode(true));
+    });
+    
     setupLikeButtons();
     setupDislikeButtons();
     setupCommentToggles();
@@ -340,17 +350,62 @@ function setupInteractions() {
     setupBookmarkButtons();
 }
 
-// ✅ FIXED: Comment System
+// ✅ FIXED: Like Functionality - NO DOUBLE COUNTING
+function setupLikeButtons() {
+    document.querySelectorAll(".like-btn").forEach((btn) => {
+        btn.addEventListener("click", function() {
+            const postId = parseInt(this.getAttribute("data-id"));
+            const post = posts.find((p) => p.id === postId);
+            if (post) {
+                post.likes = (post.likes || 0) + 1;
+                localStorage.setItem("arzPosts", JSON.stringify(posts));
+                this.innerHTML = `👍 Like (${post.likes})`;
+                showNotification('Liked the post!', 'success');
+                
+                // Disable button temporarily to prevent double clicking
+                this.disabled = true;
+                setTimeout(() => {
+                    this.disabled = false;
+                }, 1000);
+            }
+        });
+    });
+}
+
+// ✅ FIXED: Dislike Functionality - NO DOUBLE COUNTING
+function setupDislikeButtons() {
+    document.querySelectorAll(".dislike-btn").forEach((btn) => {
+        btn.addEventListener("click", function() {
+            const postId = parseInt(this.getAttribute("data-id"));
+            const post = posts.find((p) => p.id === postId);
+            if (post) {
+                post.dislikes = (post.dislikes || 0) + 1;
+                localStorage.setItem("arzPosts", JSON.stringify(posts));
+                this.innerHTML = `👎 Dislike (${post.dislikes})`;
+                
+                // Disable button temporarily to prevent double clicking
+                this.disabled = true;
+                setTimeout(() => {
+                    this.disabled = false;
+                }, 1000);
+            }
+        });
+    });
+}
+
+// ✅ FIXED: Comment System - PROPERLY WORKING
 function setupCommentToggles() {
     document.querySelectorAll(".comment-toggle").forEach((btn) => {
         btn.addEventListener("click", function() {
             const postId = this.getAttribute("data-id");
             const section = document.getElementById(`comments-${postId}`);
-            const isHidden = section.style.display === "none";
-            section.style.display = isHidden ? "block" : "none";
             
-            if (isHidden) {
+            if (section.style.display === "none" || !section.style.display) {
+                section.style.display = "block";
                 renderComments(parseInt(postId));
+                showNotification('💬 Comment section opened', 'info');
+            } else {
+                section.style.display = "none";
             }
         });
     });
@@ -360,11 +415,12 @@ function setupCommentButtons() {
     document.querySelectorAll(".add-comment").forEach((btn) => {
         btn.addEventListener("click", function() {
             const postId = parseInt(this.getAttribute("data-id"));
-            const input = this.previousElementSibling;
+            const input = document.querySelector(`.comment-input[data-id="${postId}"]`);
             const text = input.value.trim();
             
             if (!text) {
-                showNotification('Please write a comment!', 'error');
+                showNotification('❌ Please write a comment first!', 'error');
+                input.focus();
                 return;
             }
 
@@ -373,6 +429,7 @@ function setupCommentButtons() {
         });
     });
     
+    // Enter key support
     document.querySelectorAll(".comment-input").forEach(input => {
         input.addEventListener("keypress", function(e) {
             if (e.key === "Enter") {
@@ -390,7 +447,10 @@ function setupCommentButtons() {
 
 function addCommentToPost(postId, text) {
     const post = posts.find((p) => p.id === postId);
-    if (!post) return;
+    if (!post) {
+        showNotification('❌ Post not found!', 'error');
+        return;
+    }
 
     if (!Array.isArray(post.comments)) {
         post.comments = [];
@@ -409,12 +469,13 @@ function addCommentToPost(postId, text) {
     localStorage.setItem("arzPosts", JSON.stringify(posts));
     renderComments(postId);
     
+    // Update comment count
     const commentBtn = document.querySelector(`.comment-toggle[data-id="${postId}"]`);
     if (commentBtn) {
         commentBtn.innerHTML = `💬 Comments (${post.comments.length})`;
     }
     
-    showNotification('Comment added successfully!', 'success');
+    showNotification('💬 Comment added successfully!', 'success');
 }
 
 function renderComments(postId) {
@@ -426,7 +487,12 @@ function renderComments(postId) {
     
     section.innerHTML = "";
 
-    (post.comments || []).forEach((comment) => {
+    if (!post.comments || post.comments.length === 0) {
+        section.innerHTML = '<p style="color: #9ca3af; text-align: center;">No comments yet. Be the first to comment!</p>';
+        return;
+    }
+
+    post.comments.forEach((comment) => {
         const commentDiv = document.createElement("div");
         commentDiv.className = "comment";
         commentDiv.innerHTML = `
@@ -439,37 +505,6 @@ function renderComments(postId) {
             <p>${comment.text}</p>
         `;
         section.appendChild(commentDiv);
-    });
-}
-
-// 👍 Like Functionality
-function setupLikeButtons() {
-    document.querySelectorAll(".like-btn").forEach((btn) => {
-        btn.addEventListener("click", function() {
-            const postId = parseInt(this.getAttribute("data-id"));
-            const post = posts.find((p) => p.id === postId);
-            if (post) {
-                post.likes = (post.likes || 0) + 1;
-                localStorage.setItem("arzPosts", JSON.stringify(posts));
-                this.innerHTML = `👍 Like (${post.likes})`;
-                showNotification('Liked the post!', 'success');
-            }
-        });
-    });
-}
-
-// 👎 Dislike Functionality
-function setupDislikeButtons() {
-    document.querySelectorAll(".dislike-btn").forEach((btn) => {
-        btn.addEventListener("click", function() {
-            const postId = parseInt(this.getAttribute("data-id"));
-            const post = posts.find((p) => p.id === postId);
-            if (post) {
-                post.dislikes = (post.dislikes || 0) + 1;
-                localStorage.setItem("arzPosts", JSON.stringify(posts));
-                this.innerHTML = `👎 Dislike (${post.dislikes})`;
-            }
-        });
     });
 }
 
@@ -493,10 +528,10 @@ function toggleBookmark(postId) {
     const index = user.bookmarks.indexOf(postId);
     if (index > -1) {
         user.bookmarks.splice(index, 1);
-        showNotification('Post removed from bookmarks', 'info');
+        showNotification('📑 Bookmark removed', 'info');
     } else {
         user.bookmarks.push(postId);
-        showNotification('Post bookmarked!', 'success');
+        showNotification('🔖 Post bookmarked!', 'success');
     }
     
     localStorage.setItem('arzUser', JSON.stringify(user));
