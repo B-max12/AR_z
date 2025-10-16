@@ -817,3 +817,164 @@ function openImageModal(imageSrc) {
         if (e.target === modal) modal.remove();
     };
 }
+// 👤 Profile Page Rendering - Add this to your existing app.js
+function renderUserProfile() {
+    const profileContainer = document.querySelector('.profile-page');
+    if (!profileContainer) return;
+    
+    const currentUser = JSON.parse(localStorage.getItem('arzUser')) || {
+        username: "Guest",
+        profilePic: "https://via.placeholder.com/150/00bcd4/ffffff?text=User",
+        email: "Not set"
+    };
+    
+    // Get user's posts
+    const allPosts = JSON.parse(localStorage.getItem('arzPosts')) || [];
+    const userPosts = allPosts.filter(post => post.author === currentUser.username);
+    
+    profileContainer.innerHTML = `
+        <div class="profile-header">
+            <div class="profile-image-section">
+                <img src="${currentUser.profilePic}" alt="Profile" class="profile-large" 
+                     onerror="this.src='https://via.placeholder.com/150/00bcd4/ffffff?text=User'">
+                <button class="edit-profile-btn" onclick="editProfile()">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </button>
+            </div>
+            
+            <div class="profile-info">
+                <h2>${currentUser.username}</h2>
+                <p class="user-email">${currentUser.email || "Email not set"}</p>
+                <p class="user-bio">Creative soul sharing art, poetry, and dreams with the world. ✨</p>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-number">${userPosts.length}</span>
+                        <span class="stat-label">Posts</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">${calculateTotalLikes(userPosts)}</span>
+                        <span class="stat-label">Likes</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">${calculateTotalComments(userPosts)}</span>
+                        <span class="stat-label">Comments</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">${currentUser.following ? currentUser.following.length : 0}</span>
+                        <span class="stat-label">Following</span>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    <button class="action-btn primary" onclick="window.location.href='upload.html'">
+                        <i class="fas fa-plus"></i> Create New Post
+                    </button>
+                    <button class="action-btn secondary" onclick="shareProfile()">
+                        <i class="fas fa-share-alt"></i> Share Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="profile-content">
+            <div class="content-section">
+                <h3><i class="fas fa-images"></i> My Creations</h3>
+                
+                ${userPosts.length > 0 ? `
+                    <div class="posts-grid">
+                        ${userPosts.map(post => `
+                            <div class="profile-post-card" onclick="viewPost(${post.id})">
+                                ${post.image ? `
+                                    <img src="${post.image}" alt="${post.title}" class="post-thumbnail"
+                                         onerror="this.style.display='none'">
+                                ` : ''}
+                                <div class="post-content">
+                                    <h4>${post.title}</h4>
+                                    <p class="post-category">${post.category}</p>
+                                    <p class="post-excerpt">${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}</p>
+                                    <div class="post-meta">
+                                        <span><i class="fas fa-heart"></i> ${post.likes || 0}</span>
+                                        <span><i class="fas fa-comment"></i> ${post.comments ? post.comments.length : 0}</span>
+                                        <span><i class="fas fa-eye"></i> ${post.views || 0}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : `
+                    <div class="empty-state">
+                        <i class="fas fa-camera"></i>
+                        <h4>No Posts Yet</h4>
+                        <p>Share your first creation with the world!</p>
+                        <button class="create-first-post" onclick="window.location.href='upload.html'">
+                            Create Your First Post
+                        </button>
+                    </div>
+                `}
+            </div>
+            
+            <div class="content-section">
+                <h3><i class="fas fa-bookmark"></i> Bookmarked Posts</h3>
+                <div class="bookmarks-section">
+                    ${currentUser.bookmarks && currentUser.bookmarks.length > 0 ? `
+                        <div class="bookmarks-list">
+                            ${currentUser.bookmarks.map(bookmarkId => {
+                                const bookmarkedPost = allPosts.find(p => p.id === bookmarkId);
+                                return bookmarkedPost ? `
+                                    <div class="bookmark-item" onclick="viewPost(${bookmarkedPost.id})">
+                                        <div class="bookmark-info">
+                                            <h5>${bookmarkedPost.title}</h5>
+                                            <p>By ${bookmarkedPost.author}</p>
+                                        </div>
+                                        <i class="fas fa-bookmark bookmarked"></i>
+                                    </div>
+                                ` : '';
+                            }).join('')}
+                        </div>
+                    ` : `
+                        <div class="empty-state">
+                            <i class="fas fa-bookmark"></i>
+                            <p>No bookmarks yet</p>
+                            <small>Bookmark posts you love to find them later</small>
+                        </div>
+                    `}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Helper functions for profile page
+function calculateTotalLikes(userPosts) {
+    return userPosts.reduce((total, post) => total + (post.likes || 0), 0);
+}
+
+function calculateTotalComments(userPosts) {
+    return userPosts.reduce((total, post) => total + (post.comments ? post.comments.length : 0), 0);
+}
+
+function editProfile() {
+    showNotification('🛠️ Profile editing feature coming soon!', 'info');
+}
+
+function shareProfile() {
+    const currentUser = JSON.parse(localStorage.getItem('arzUser')) || { username: "Guest" };
+    const profileUrl = `${window.location.origin}${window.location.pathname}?user=${currentUser.username}`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: `Check out ${currentUser.username}'s profile on Arz`,
+            text: `View ${currentUser.username}'s creative work on Arz`,
+            url: profileUrl
+        });
+    } else {
+        navigator.clipboard.writeText(profileUrl);
+        showNotification('📋 Profile link copied to clipboard!', 'success');
+    }
+}
+
+function viewPost(postId) {
+    showNotification('🔍 Opening post...', 'info');
+    // You can implement post detail view here
+}
