@@ -93,34 +93,39 @@
   </footer>
 
   <script src="app.js"></script>
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "your-api-key",
-    authDomain: "arz-backend.firebaseapp.com",
-    projectId: "arz-backend",
-    storageBucket: "arz-backend.appspot.com",
-    messagingSenderId: "XXXXXXX",
-    appId: "XXXXXXXX"
-  };
+  <!-- 🔥 Flask Backend Connection Script -->
+  <script>
+    const API_URL = "http://127.0.0.1:5000";
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+    // Example function: Add user to backend
+    async function addUser(name, email) {
+      try {
+        const res = await fetch(`${API_URL}/add_user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email }),
+        });
+        const data = await res.json();
+        console.log("✅ User added:", data);
+      } catch (error) {
+        console.error("❌ Error adding user:", error);
+      }
+    }
 
-  // Example: Add data
-  async function addUser(name, email) {
-    await addDoc(collection(db, "users"), { name, email });
-  }
+    // Example function: Fetch users from backend
+    async function loadUsers() {
+      try {
+        const res = await fetch(`${API_URL}/get_users`);
+        const users = await res.json();
+        console.log("📦 Users from backend:", users);
+      } catch (error) {
+        console.error("❌ Error loading users:", error);
+      }
+    }
 
-  // Example: Get data
-  async function getUsers() {
-    const snapshot = await getDocs(collection(db, "users"));
-    snapshot.forEach(doc => console.log(doc.id, doc.data()));
-  }
-</script>
-
+    // Auto load data when page opens
+    document.addEventListener("DOMContentLoaded", loadUsers);
+  </script>
 </body>
-
 </html>
