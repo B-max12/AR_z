@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Your Creation - Arz</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="favicon 1.ico" type="image/x-icon">
+</head>
+<body>
+  <!-- upload.html में navbar को यह update करें -->
+<header>
+  <nav>
+    <div class="logo" onclick="window.location.href='index.html'">ARZ</div>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="upload.html" class="active">Upload</a>
+      <a href="login.html">Login</a>
+      <a href="register.html">Register</a>
+      <a href="profile.html">Profile</a> <!-- यह नई लाइन add करें -->
+      <a href="donate.html" class="donate-btn">Donate</a>
+      <button class="theme-toggle" title="Toggle theme">🌙</button>
+    </div>
+  </nav>
+</header>
+
+  <section id="upload">
+    <h2>Share Your Creative Work</h2>
+    <p>Upload your photography, artwork, poetry, or any creative content to share with the community</p>
+    
+    <form id="uploadForm">
+      <input type="text" id="title" placeholder="Title of your work" required>
+      
+      <select id="category" required>
+        <option value="">Select Category</option>
+        <option value="Photography">Photography</option>
+        <option value="Painting">Painting</option>
+        <option value="Poetry">Poetry</option>
+        <option value="Digital Art">Digital Art</option>
+        <option value="Sculpture">Sculpture</option>
+        <option value="Writing">Writing</option>
+        <option value="Music">Music</option>
+        <option value="Other">Other</option>
+      </select>
+      
+      <textarea id="description" placeholder="Describe your creative work... (What inspired you? What techniques did you use?)" required rows="4"></textarea>
+      
+      <label for="fileInput" style="text-align: left; display: block; margin: 10px 0 5px 0;">Upload Image:</label>
+      <input type="file" id="fileInput" accept="image/*" required>
+      
+      <button type="submit">Upload Creation</button>
+    </form>
+  </section>
+
+  <footer class="universal-footer">
+    <div class="footer-links">
+      <button onclick="window.location.href='privacy.html'">Privacy Policy</button>
+      <button onclick="window.location.href='terms.html'">Terms & Conditions</button>
+      <button onclick="window.location.href='contact.html'">Contact Us</button>
+      <button onclick="window.location.href='donate.html'">Donate</button>
+      <button onclick="window.location.href='follow.html'">Follow Us</button>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2025 Arz Creative Platform | Built with ❤️ by <strong>Awab Hammad</strong></p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

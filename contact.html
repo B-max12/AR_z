@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us - Arz</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="favicon 1.ico" type="image/x-icon">
+</head>
+<body>
+  <header id="navbar"></header>
+
+  <section class="page contact-page">
+    <h2>Contact Us</h2>
+    <p>Have questions, feedback, or want to collaborate? Fill the form below or reach us through social media.</p>
+
+    <form class="contact-form">
+      <input type="text" placeholder="Your Name" required>
+      <input type="email" placeholder="Your Email" required>
+      <textarea placeholder="Your Message" required></textarea>
+      <button type="submit">Send Message</button>
+    </form>
+  </section>
+
+  <div id="footer-placeholder"></div>
+<script>
+    fetch("footer.html")
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById("footer-placeholder").innerHTML = data;
+        });
+</script>
+
+
+  <script>
+    fetch("navbar.html").then(r=>r.text()).then(d=>document.getElementById("navbar").innerHTML=d);
+    fetch("footer.html").then(r=>r.text()).then(d=>document.getElementById("footer").innerHTML=d);
+  </script>
+</body>
+</html>

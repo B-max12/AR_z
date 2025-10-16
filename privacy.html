@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - Arz</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="favicon 1.ico" type="image/x-icon">
+</head>
+<body>
+  <header id="navbar"></header>
+
+  <section class="page privacy-page">
+    <h2>Privacy Policy</h2>
+    <p>Your privacy is important to us. We collect only minimal user data to improve platform experience.</p>
+    <ul>
+      <li>We don’t share your personal data with third parties.</li>
+      <li>Cookies are used only for analytics and login sessions.</li>
+      <li>You can request data deletion anytime.</li>
+      <li>All messages and uploads are securely stored.</li>
+    </ul>
+  </section>
+
+  <footer id="footer"></footer>
+
+  <script>
+    fetch("navbar.html").then(r=>r.text()).then(d=>document.getElementById("navbar").innerHTML=d);
+    fetch("footer.html").then(r=>r.text()).then(d=>document.getElementById("footer").innerHTML=d);
+  </script>
+</body>
+</html>

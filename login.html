@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Arz</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="favicon 1.ico" type="image/x-icon">
+</head>
+<header id="navbar"></header>
+
+<script>
+  fetch("navbar.html")
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById("navbar").innerHTML = data;
+    })
+    .catch(error => console.error("Navbar Load Error:", error));
+</script>
+
+<body>
+  <!-- <header>
+    <nav>
+      <div>ARZ</div>
+      <div>
+        <a href="index.html">Home</a>
+        <a href="upload.html">Upload</a>
+        <a href="login.html" class="active">Login</a>
+        <a href="register.html">Register</a>
+      </div>
+    </nav>
+  </header> -->
+
+  <section id="login" class="auth-section">
+    <h2>Login to Arz</h2>
+    <form>
+      <input type="email" placeholder="Email" required>
+      <input type="password" placeholder="Password" required>
+      <button type="submit">Login</button>
+    </form>
+  </section>
+  <div id="footer-placeholder"></div>
+<script>
+    fetch("footer.html")
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById("footer-placeholder").innerHTML = data;
+        });
+</script>
+
+</body>
+</html>

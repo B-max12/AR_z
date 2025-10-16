@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donate - Arz</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="favicon 1.ico" type="image/x-icon">
+</head>
+<body>
+  <header id="navbar"></header>
+
+  <section class="page donate-page">
+    <h2>Support Arz</h2>
+    <p>Help us keep Arz alive — empowering creators, poets, and dreamers across the globe.</p>
+
+    <div class="donate-box">
+      <h3>Select Donation Amount</h3>
+      <div class="donate-options">
+        <button>$5</button>
+        <button>$10</button>
+        <button>$20</button>
+        <button>$50</button>
+      </div>
+      <input type="text" placeholder="Or enter custom amount" />
+      <button class="donate-submit">Donate Now</button>
+    </div>
+  </section>
+
+  <div id="footer-placeholder"></div>
+<script>
+    fetch("footer.html")
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById("footer-placeholder").innerHTML = data;
+        });
+</script>
+
+
+  <script>
+    fetch("navbar.html").then(r=>r.text()).then(d=>document.getElementById("navbar").innerHTML=d);
+    fetch("footer.html").then(r=>r.text()).then(d=>document.getElementById("footer").innerHTML=d);
+  </script>
+</body>
+</html>

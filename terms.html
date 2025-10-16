@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms & Conditions - Arz</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="favicon 1.ico" type="image/x-icon">
+</head>
+<body>
+  <header id="navbar"></header>
+
+  <section class="page terms-page">
+    <h2>Terms & Conditions</h2>
+    <p>By using Arz, you agree to our guidelines for creative respect, fair usage, and content originality.</p>
+    <ul>
+      <li>All submissions must be original and belong to the user.</li>
+      <li>Plagiarism or hate content is strictly prohibited.</li>
+      <li>We reserve the right to moderate or remove content that violates our standards.</li>
+      <li>By submitting, you grant Arz permission to feature your work.</li>
+    </ul>
+  </section>
+
+  <footer id="footer"></footer>
+
+  <script>
+    fetch("navbar.html").then(r=>r.text()).then(d=>document.getElementById("navbar").innerHTML=d);
+    fetch("footer.html").then(r=>r.text()).then(d=>document.getElementById("footer").innerHTML=d);
+  </script>
+</body>
+</html>

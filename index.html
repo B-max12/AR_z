@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arz - Creative Platform</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="shortcut icon" href="favicon 1.ico" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <div class="logo" onclick="window.location.href='index.html'">ARZ</div>
+      <div class="nav-links">
+        <a href="index.html" class="active">Home</a>
+        <a href="upload.html">Upload</a>
+        <a href="login.html">Login</a>
+        <a href="register.html">Register</a>
+        <a href="profile.html">Profile</a>
+        <a href="donate.html" class="donate-btn">Donate</a>
+        <button class="theme-toggle" title="Toggle theme">🌙</button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- 🏠 Hero Section -->
+  <section id="home">
+    <h1>Share Your Creative Value</h1>
+    <p>Showcase your photography, paintings, poetry, and creative work with the world</p>
+    <button onclick="window.location.href='register.html'">Join Creative Community</button>
+  </section>
+
+  <!-- 🔎 Explore Section -->
+  <section id="explore">
+    <h2>Featured Creations</h2>
+    <p>Discover amazing artwork from our creative community</p>
+    
+    <!-- Search and Filter -->
+    <div class="search-container">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search posts, artists, or categories...">
+        <i class="fas fa-search search-icon"></i>
+      </div>
+      <select class="filter-select" id="categoryFilter">
+        <option value="">All Categories</option>
+        <option value="Photography">Photography</option>
+        <option value="Painting">Painting</option>
+        <option value="Poetry">Poetry</option>
+        <option value="Digital Art">Digital Art</option>
+        <option value="Sculpture">Sculpture</option>
+        <option value="Writing">Writing</option>
+        <option value="Music">Music</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    
+    <div class="feed" id="postFeed">
+      <!-- Posts will be loaded automatically by JavaScript -->
+    </div>
+  </section>
+
+  <!-- 💖 Donate Section -->
+  <section id="donate">
+    <h2>Support Our Creative Community</h2>
+    <p>Your donation helps us support artists, writers, and dreamers around the world to share their creativity.</p>
+    <button class="donate-main" onclick="window.location.href='donate.html'">Support Creators</button>
+  </section>
+
+  <!-- ⚙️ Footer -->
+  <footer class="universal-footer">
+    <div class="footer-links">
+      <button onclick="window.location.href='privacy.html'">Privacy Policy</button>
+      <button onclick="window.location.href='terms.html'">Terms & Conditions</button>
+      <button onclick="window.location.href='contact.html'">Contact Us</button>
+      <button onclick="window.location.href='donate.html'">Donate</button>
+      <button onclick="window.location.href='follow.html'">Follow Us</button>
+    </div>
+
+    <div class="footer-motive">
+      <h3>🌟 Our Mission</h3>
+      <p>
+        At <strong>Arz</strong>, we believe creativity has the power to connect hearts,  
+        inspire dreams, and build a world full of imagination.  
+        Our mission is to give every artist, poet, and thinker  
+        a space where their voice can be heard — freely and beautifully.
+      </p>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2025 Arz Creative Platform | Built with ❤️ by <strong>Awab Hammad</strong></p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

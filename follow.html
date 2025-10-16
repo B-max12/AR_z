@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Follow Us</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="shortcut icon" href="favicon 1.ico" type="image/x-icon">
+</head>
+<header id="navbar"></header>
+
+<script>
+  fetch("navbar.html")
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById("navbar").innerHTML = data;
+    })
+    .catch(error => console.error("Navbar Load Error:", error));
+</script>
+
+<body>
+    <!-- Navbar
+    <header>
+        <nav class="navbar">
+            <div class="logo">Arz Platform</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="register.html">Register</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="donate.html" class="donate-btn">Donate</a></li>
+            </ul>
+        </nav>
+    </header> -->
+
+    <!-- Follow Us Section -->
+    <section class="follow-section">
+        <h1>Follow Us</h1>
+        <p>Stay connected with us through social media. Join our community and be part of our journey!</p>
+
+        <div class="social-container">
+            <a href="https://www.facebook.com" target="_blank" class="social-card facebook">
+                <i class="fab fa-facebook-f"></i>
+                <span>Facebook</span>
+            </a>
+            <a href="https://www.twitter.com" target="_blank" class="social-card twitter">
+                <i class="fab fa-twitter"></i>
+                <span>Twitter</span>
+            </a>
+            <a href="https://www.instagram.com" target="_blank" class="social-card instagram">
+                <i class="fab fa-instagram"></i>
+                <span>Instagram</span>
+            </a>
+            <a href="https://www.youtube.com" target="_blank" class="social-card youtube">
+                <i class="fab fa-youtube"></i>
+                <span>YouTube</span>
+            </a>
+            <a href="https://www.whatsapp.com" target="_blank" class="social-card whatsapp">
+                <i class="fab fa-whatsapp"></i>
+                <span>WhatsApp</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <div id="footer-placeholder"></div>
+<script>
+    fetch("footer.html")
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById("footer-placeholder").innerHTML = data;
+        });
+</script>
+
+
+    <!-- FontAwesome for icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
+</html>
