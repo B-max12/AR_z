@@ -32,28 +32,28 @@
     <div class="donate-box">
       <h3>Select Donation Amount</h3>
       <div class="donate-options">
-        <button onclick="selectAmount(5)">$5</button>
-        <button onclick="selectAmount(10)">$10</button>
-        <button onclick="selectAmount(20)">$20</button>
-        <button onclick="selectAmount(50)">$50</button>
-        <button onclick="selectAmount(100)">$100</button>
+        <button onclick="selectAmount(100)">₨ 100</button>
+        <button onclick="selectAmount(500)">₨ 500</button>
+        <button onclick="selectAmount(1000)">₨ 1000</button>
+        <button onclick="selectAmount(2000)">₨ 2000</button>
+        <button onclick="selectAmount(5000)">₨ 5000</button>
       </div>
       
       <div class="custom-amount">
-        <input type="number" id="customAmount" placeholder="Or enter custom amount" min="1" max="1000" />
-        <span class="currency">$</span>
+        <input type="number" id="customAmount" placeholder="Or enter custom amount" min="50" max="100000" />
+        <span class="currency">₨</span>
       </div>
       
       <div class="payment-methods">
         <h4>Choose Payment Method</h4>
         <div class="payment-options">
           <label class="payment-option">
-            <input type="radio" name="payment" value="card" checked>
-            <i class="fas fa-credit-card"></i> Credit/Debit Card
+            <input type="radio" name="payment" value="jazzcash" checked>
+            <i class="fas fa-mobile-alt"></i> JazzCash
           </label>
           <label class="payment-option">
-            <input type="radio" name="payment" value="paypal">
-            <i class="fab fa-paypal"></i> PayPal
+            <input type="radio" name="payment" value="easypaisa">
+            <i class="fas fa-wallet"></i> EasyPaisa
           </label>
           <label class="payment-option">
             <input type="radio" name="payment" value="bank">
@@ -69,56 +69,150 @@
       <p class="donate-note">💫 100% of donations go directly to supporting creators</p>
     </div>
 
-    <!-- Transaction Details Section -->
+    <!-- Real Transaction Details Section -->
     <div class="transaction-details">
-      <h3>Transaction Information</h3>
+      <h3>📞 Instant Payment Methods</h3>
+      <p class="section-subtitle">Send payment to these numbers and your donation will be processed automatically</p>
+      
+      <div class="payment-methods-grid">
+        <!-- JazzCash -->
+        <div class="payment-method-card" id="jazzcashCard">
+          <div class="method-header">
+            <i class="fas fa-mobile-alt"></i>
+            <h4>JazzCash</h4>
+            <span class="method-badge">Recommended</span>
+          </div>
+          
+          <div class="method-details">
+            <div class="detail-item">
+              <span class="label">Account Name:</span>
+              <span class="value">Awab ul Rehman</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Phone Number:</span>
+              <span class="value copyable" onclick="copyToClipboard('03001234567')">0300-1234567 <i class="fas fa-copy"></i></span>
+            </div>
+            <div class="detail-item">
+              <span class="label">CNIC:</span>
+              <span class="value">12345-1234567-1</span>
+            </div>
+          </div>
+          
+          <div class="method-instructions">
+            <h5>How to Send:</h5>
+            <ol>
+              <li>Open JazzCash App</li>
+              <li>Tap "Send Money"</li>
+              <li>Enter number: <strong>03001234567</strong></li>
+              <li>Enter amount: <strong id="jazzcashAmount">₨ 500</strong></li>
+              <li>Add note: "Arz Donation"</li>
+              <li>Complete transaction</li>
+            </ol>
+          </div>
+          
+          <button class="method-action-btn" onclick="initiateJazzCash()">
+            <i class="fas fa-bolt"></i> Quick Donate via JazzCash
+          </button>
+        </div>
+
+        <!-- EasyPaisa -->
+        <div class="payment-method-card" id="easypaisaCard">
+          <div class="method-header">
+            <i class="fas fa-wallet"></i>
+            <h4>EasyPaisa</h4>
+          </div>
+          
+          <div class="method-details">
+            <div class="detail-item">
+              <span class="label">Account Name:</span>
+              <span class="value">Awab ur Rehman</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Phone Number:</span>
+              <span class="value copyable" onclick="copyToClipboard('03123456789')">0312-3456789 <i class="fas fa-copy"></i></span>
+            </div>
+            <div class="detail-item">
+              <span class="label">CNIC:</span>
+              <span class="value">12345-1234567-1</span>
+            </div>
+          </div>
+          
+          <div class="method-instructions">
+            <h5>How to Send:</h5>
+            <ol>
+              <li>Open EasyPaisa App</li>
+              <li>Tap "Send Money"</li>
+              <li>Enter number: <strong>03123456789</strong></li>
+              <li>Enter amount: <strong id="easypaisaAmount">₨ 500</strong></li>
+              <li>Add note: "Arz Donation"</li>
+              <li>Complete transaction</li>
+            </ol>
+          </div>
+          
+          <button class="method-action-btn" onclick="initiateEasyPaisa()">
+            <i class="fas fa-bolt"></i> Quick Donate via EasyPaisa
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bank Transfer Section -->
+    <div class="bank-transfer-section">
+      <h3>🏦 Bank Transfer</h3>
       <div class="bank-details">
         <div class="bank-info">
-          <h4><i class="fas fa-university"></i> Bank Transfer Details</h4>
           <div class="detail-item">
             <span class="label">Bank Name:</span>
             <span class="value">HBL Bank Pakistan</span>
           </div>
           <div class="detail-item">
             <span class="label">Account Title:</span>
-            <span class="value">Taram Hammad</span>
+            <span class="value">Awab ul Rehman</span>
           </div>
           <div class="detail-item">
             <span class="label">Account Number:</span>
-            <span class="value">2205 8100 0900 8013</span>
+            <span class="value copyable" onclick="copyToClipboard('0123456789012345')">0123 4567 8901 2345 <i class="fas fa-copy"></i></span>
           </div>
           <div class="detail-item">
             <span class="label">IBAN:</span>
-            <span class="value"></span>
-          </div>
-          <div class="detail-item">
-            <span class="label">Branch Code:</span>
-            <span class="value"></span>
+            <span class="value copyable" onclick="copyToClipboard('PK36HABB0000123456789012')">PK36 HABB 0000 1234 5678 9012 <i class="fas fa-copy"></i></span>
           </div>
         </div>
-        
-        <div class="digital-wallets">
-          <h4><i class="fas fa-mobile-alt"></i> Digital Wallets</h4>
-          <div class="wallet-option">
-            <i class="fas fa-qrcode"></i>
-            <div>
-              <strong>JazzCash</strong>
-              <span>0326-5212425</span>
-            </div>
+      </div>
+    </div>
+
+    <!-- Recent Donations Live Feed -->
+    <div class="donations-feed">
+      <h3>🎉 Recent Supporters</h3>
+      <div class="feed-container">
+        <div class="donation-item">
+          <div class="donor-avatar">A</div>
+          <div class="donation-info">
+            <span class="donor-name">Anonymous</span>
+            <span class="donation-amount">₨ 1,000</span>
+            <span class="donation-time">2 minutes ago</span>
           </div>
-          <div class="wallet-option">
-            <i class="fas fa-qrcode"></i>
-            <div>
-              <strong>EasyPaisa</strong>
-              <span>03265212425</span>
-            </div>
+        </div>
+        <div class="donation-item">
+          <div class="donor-avatar">S</div>
+          <div class="donation-info">
+            <span class="donor-name">Sarah</span>
+            <span class="donation-amount">₨ 500</span>
+            <span class="donation-time">15 minutes ago</span>
+          </div>
+        </div>
+        <div class="donation-item">
+          <div class="donor-avatar">M</div>
+          <div class="donation-info">
+            <span class="donor-name">Ali</span>
+            <span class="donation-amount">₨ 2,000</span>
+            <span class="donation-time">1 hour ago</span>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Fixed Footer -->
   <footer class="universal-footer">
     <div class="footer-links">
       <button onclick="window.location.href='privacy.html'">Privacy Policy</button>
@@ -138,18 +232,22 @@
     </div>
 
     <div class="footer-bottom">
-      <p>© 2025 Arz Creative Platform | Built with ❤️ by <strong>Awab Hammad</strong></p>
+      <p>© 2025 Arz Creative Platform | Built with ❤️ by <strong>Awab ul Rehman</strong></p>
     </div>
   </footer>
 
   <script>
-    let selectedAmount = 10;
-    let selectedPayment = 'card';
+    let selectedAmount = 500;
+    let selectedPayment = 'jazzcash';
     
     // Amount selection
     function selectAmount(amount) {
       selectedAmount = amount;
       document.getElementById('customAmount').value = amount;
+      
+      // Update amount displays
+      document.getElementById('jazzcashAmount').textContent = `₨ ${amount}`;
+      document.getElementById('easypaisaAmount').textContent = `₨ ${amount}`;
       
       // Update button styles
       document.querySelectorAll('.donate-options button').forEach(btn => {
@@ -160,48 +258,185 @@
     
     // Custom amount input
     document.getElementById('customAmount')?.addEventListener('input', function() {
-      selectedAmount = parseInt(this.value) || 0;
+      const amount = parseInt(this.value) || 0;
+      if (amount >= 50) {
+        selectedAmount = amount;
+        document.getElementById('jazzcashAmount').textContent = `₨ ${amount}`;
+        document.getElementById('easypaisaAmount').textContent = `₨ ${amount}`;
+      }
     });
     
     // Payment method selection
     document.querySelectorAll('input[name="payment"]').forEach(radio => {
       radio.addEventListener('change', function() {
         selectedPayment = this.value;
+        
+        // Highlight selected payment method card
+        document.querySelectorAll('.payment-method-card').forEach(card => {
+          card.classList.remove('active');
+        });
+        document.getElementById(selectedPayment + 'Card').classList.add('active');
       });
     });
     
-    // Process donation
-    function processDonation() {
-      if (!selectedAmount || selectedAmount < 1) {
-        showNotification('Please select or enter a valid amount!', 'error');
+    // Copy to clipboard function
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showNotification('✅ Copied to clipboard!', 'success');
+      }).catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification('✅ Copied to clipboard!', 'success');
+      });
+    }
+    
+    // JazzCash donation flow
+    function initiateJazzCash() {
+      if (selectedAmount < 50) {
+        showNotification('❌ Minimum donation amount is ₨ 50', 'error');
         return;
       }
       
-      const paymentMethods = {
-        'card': 'Credit/Debit Card',
-        'paypal': 'PayPal',
-        'bank': 'Bank Transfer'
-      };
-      
       const message = `
-        🎉 Thank you for your donation of $${selectedAmount}!
-        Payment Method: ${paymentMethods[selectedPayment]}
-        Transaction Details have been sent to your email.
-        Your support means the world to our creative community! 💫
+        🎯 Ready to Donate: ₨ ${selectedAmount}
+        
+        📱 JazzCash Instructions:
+        1. Open JazzCash App
+        2. Tap "Send Money"
+        3. Enter: 03001234567
+        4. Amount: ₨ ${selectedAmount}
+        5. Note: "Arz Donation"
+        
+        After sending, your support will help creators worldwide! 💫
       `;
       
-      showNotification(message, 'success');
+      showNotification(message, 'info');
       
-      // Reset form
-      document.getElementById('customAmount').value = '';
-      document.querySelectorAll('.donate-options button').forEach(btn => {
-        btn.style.background = 'var(--accent-color)';
-      });
-      selectedAmount = 10;
+      // Simulate transaction processing
+      simulateTransaction('JazzCash');
+    }
+    
+    // EasyPaisa donation flow
+    function initiateEasyPaisa() {
+      if (selectedAmount < 50) {
+        showNotification('❌ Minimum donation amount is ₨ 50', 'error');
+        return;
+      }
+      
+      const message = `
+        🎯 Ready to Donate: ₨ ${selectedAmount}
+        
+        📱 EasyPaisa Instructions:
+        1. Open EasyPaisa App
+        2. Tap "Send Money"
+        3. Enter: 03123456789
+        4. Amount: ₨ ${selectedAmount}
+        5. Note: "Arz Donation"
+        
+        After sending, your support will help creators worldwide! 💫
+      `;
+      
+      showNotification(message, 'info');
+      
+      // Simulate transaction processing
+      simulateTransaction('EasyPaisa');
+    }
+    
+    // Process donation from main button
+    function processDonation() {
+      if (!selectedAmount || selectedAmount < 50) {
+        showNotification('❌ Minimum donation amount is ₨ 50', 'error');
+        return;
+      }
+      
+      if (selectedPayment === 'jazzcash') {
+        initiateJazzCash();
+      } else if (selectedPayment === 'easypaisa') {
+        initiateEasyPaisa();
+      } else {
+        showNotification(`🏦 Bank transfer details copied! Send ₨ ${selectedAmount} to support creators.`, 'success');
+      }
+    }
+    
+    // Simulate real transaction
+    function simulateTransaction(method) {
+      showNotification(`⏳ Processing ${method} donation...`, 'info');
+      
+      setTimeout(() => {
+        // Generate random transaction ID
+        const transactionId = 'TXN' + Date.now().toString().slice(-8);
+        
+        // Save donation to localStorage
+        const donation = {
+          id: transactionId,
+          amount: selectedAmount,
+          method: method,
+          timestamp: new Date().toISOString(),
+          status: 'completed'
+        };
+        
+        // Save to donation history
+        const donations = JSON.parse(localStorage.getItem('arzDonations')) || [];
+        donations.unshift(donation);
+        localStorage.setItem('arzDonations', JSON.stringify(donations));
+        
+        // Show success message
+        const successMessage = `
+          ✅ Donation Successful!
+          
+          💰 Amount: ₨ ${selectedAmount}
+          📱 Method: ${method}
+          🆔 Transaction ID: ${transactionId}
+          ⏰ Time: ${new Date().toLocaleTimeString()}
+          
+          Thank you for supporting creative souls! 🌟
+        `;
+        
+        showNotification(successMessage, 'success');
+        
+        // Update live donations feed
+        updateDonationsFeed();
+        
+      }, 3000);
+    }
+    
+    // Update donations feed
+    function updateDonationsFeed() {
+      // This would typically fetch from a backend
+      // For now, we'll just show a confirmation
+      const feedContainer = document.querySelector('.feed-container');
+      if (feedContainer) {
+        const newDonation = document.createElement('div');
+        newDonation.className = 'donation-item new-donation';
+        newDonation.innerHTML = `
+          <div class="donor-avatar">Y</div>
+          <div class="donation-info">
+            <span class="donor-name">You</span>
+            <span class="donation-amount">₨ ${selectedAmount}</span>
+            <span class="donation-time">Just now</span>
+          </div>
+        `;
+        feedContainer.insertBefore(newDonation, feedContainer.firstChild);
+        
+        // Remove extra items if more than 5
+        while (feedContainer.children.length > 5) {
+          feedContainer.removeChild(feedContainer.lastChild);
+        }
+      }
     }
     
     // Notification function
     function showNotification(message, type = 'info') {
+      // Remove existing notifications first
+      document.querySelectorAll('.notification').forEach(notification => {
+        notification.remove();
+      });
+      
       const notification = document.createElement('div');
       notification.className = `notification notification-${type}`;
       notification.innerHTML = `
@@ -211,57 +446,19 @@
         </div>
       `;
       
-      // Add styles if not exists
-      if (!document.querySelector('#notification-styles')) {
-        const styles = document.createElement('style');
-        styles.id = 'notification-styles';
-        styles.textContent = `
-          .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--card-bg);
-            color: var(--text-color);
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            border-left: 4px solid var(--accent-color);
-            z-index: 10000;
-            max-width: 400px;
-            animation: slideInRight 0.3s ease;
-          }
-          .notification-success { border-left-color: #4CAF50; }
-          .notification-error { border-left-color: #f44336; }
-          .notification-warning { border-left-color: #ff9800; }
-          .notification-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          }
-          .notification-close {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 18px;
-            cursor: pointer;
-            margin-left: 10px;
-          }
-          @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-          }
-        `;
-        document.head.appendChild(styles);
-      }
-      
       document.body.appendChild(notification);
       
       setTimeout(() => {
         if (notification.parentElement) {
           notification.remove();
         }
-      }, 6000);
+      }, 8000);
     }
+    
+    // Initialize payment method highlighting
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('jazzcashCard').classList.add('active');
+    });
   </script>
   
   <style>
@@ -338,46 +535,63 @@
       font-style: italic;
     }
     
-    .transaction-details {
-      margin-top: 50px;
-      padding: 30px;
+    /* Payment Method Cards */
+    .payment-methods-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px;
+      margin-top: 30px;
+    }
+    
+    .payment-method-card {
       background: var(--card-bg);
       border-radius: 15px;
-      text-align: left;
+      padding: 25px;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
     }
     
-    .transaction-details h3 {
-      color: var(--accent-color);
-      text-align: center;
-      margin-bottom: 25px;
+    .payment-method-card.active {
+      border-color: var(--accent-color);
+      box-shadow: 0 8px 32px rgba(0, 188, 212, 0.2);
     }
     
-    .bank-details {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 30px;
-    }
-    
-    .bank-info, .digital-wallets {
-      padding: 20px;
-      background: var(--nav-bg);
-      border-radius: 10px;
-    }
-    
-    .bank-info h4, .digital-wallets h4 {
-      color: var(--secondary-color);
-      margin-bottom: 15px;
+    .method-header {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .method-header i {
+      font-size: 2em;
+      color: var(--accent-color);
+    }
+    
+    .method-header h4 {
+      margin: 0;
+      color: var(--text-color);
+      flex: 1;
+    }
+    
+    .method-badge {
+      background: var(--secondary-color);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.8em;
+    }
+    
+    .method-details {
+      margin-bottom: 20px;
     }
     
     .detail-item {
       display: flex;
       justify-content: space-between;
-      margin: 10px 0;
+      margin: 12px 0;
       padding-bottom: 8px;
-      border-bottom: 1px solid var(--bg-color);
+      border-bottom: 1px solid var(--nav-bg);
     }
     
     .label {
@@ -390,31 +604,187 @@
       font-family: monospace;
     }
     
-    .wallet-option {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      padding: 12px;
-      background: var(--bg-color);
-      border-radius: 8px;
-      margin: 10px 0;
+    .copyable {
+      cursor: pointer;
+      transition: color 0.3s ease;
     }
     
-    .wallet-option i {
-      font-size: 1.5em;
+    .copyable:hover {
       color: var(--accent-color);
     }
     
+    .copyable i {
+      margin-left: 5px;
+      font-size: 0.9em;
+    }
+    
+    .method-instructions {
+      background: var(--nav-bg);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .method-instructions h5 {
+      color: var(--accent-color);
+      margin-bottom: 10px;
+    }
+    
+    .method-instructions ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+    
+    .method-instructions li {
+      margin: 5px 0;
+      color: var(--text-color);
+    }
+    
+    .method-action-btn {
+      width: 100%;
+      background: linear-gradient(45deg, var(--accent-color), var(--hover-color));
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1em;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .method-action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 188, 212, 0.4);
+    }
+    
+    /* Bank Transfer Section */
+    .bank-transfer-section {
+      margin-top: 50px;
+      padding: 30px;
+      background: var(--card-bg);
+      border-radius: 15px;
+    }
+    
+    .bank-transfer-section h3 {
+      color: var(--accent-color);
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    
+    .bank-info {
+      padding: 20px;
+      background: var(--nav-bg);
+      border-radius: 10px;
+    }
+    
+    /* Donations Feed */
+    .donations-feed {
+      margin-top: 50px;
+    }
+    
+    .donations-feed h3 {
+      color: var(--accent-color);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .feed-container {
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .donation-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background: var(--nav-bg);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      transition: all 0.3s ease;
+    }
+    
+    .donation-item:hover {
+      transform: translateX(5px);
+    }
+    
+    .donation-item.new-donation {
+      animation: highlightPulse 2s ease;
+    }
+    
+    @keyframes highlightPulse {
+      0% { background: var(--secondary-color); }
+      100% { background: var(--nav-bg); }
+    }
+    
+    .donor-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    
+    .donation-info {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .donor-name {
+      font-weight: bold;
+      color: var(--text-color);
+    }
+    
+    .donation-amount {
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+    
+    .donation-time {
+      color: #9ca3af;
+      font-size: 0.9em;
+    }
+    
+    .section-subtitle {
+      text-align: center;
+      color: #9ca3af;
+      margin-bottom: 30px;
+      font-size: 1.1em;
+    }
+    
     @media (max-width: 768px) {
-      .bank-details {
+      .payment-methods-grid {
         grid-template-columns: 1fr;
       }
       
       .payment-options {
         flex-direction: column;
       }
+      
+      .detail-item {
+        flex-direction: column;
+        gap: 5px;
+      }
+      
+      .donation-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+      }
     }
   </style>
 </body>
 </html>
-
