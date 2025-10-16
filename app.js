@@ -978,3 +978,510 @@ function viewPost(postId) {
     showNotification('🔍 Opening post...', 'info');
     // You can implement post detail view here
 }
+// 👤 Edit Profile Feature - Replace the existing editProfile function
+function editProfile() {
+    const currentUser = JSON.parse(localStorage.getItem('arzUser')) || {
+        username: "Guest",
+        profilePic: "https://via.placeholder.com/150/00bcd4/ffffff?text=User",
+        email: "",
+        bio: "Creative soul sharing art, poetry, and dreams with the world. ✨"
+    };
+
+    // Create edit profile modal
+    const modal = document.createElement('div');
+    modal.className = 'edit-profile-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-edit"></i> Edit Profile</h3>
+                <button class="close-modal" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <div class="form-group">
+                        <label for="editUsername">Username</label>
+                        <input type="text" id="editUsername" value="${currentUser.username}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editEmail">Email</label>
+                        <input type="email" id="editEmail" value="${currentUser.email || ''}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editBio">Bio</label>
+                        <textarea id="editBio" placeholder="Tell us about yourself..." rows="3">${currentUser.bio || 'Creative soul sharing art, poetry, and dreams with the world. ✨'}</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editProfilePic">Profile Picture</label>
+                        <div class="file-upload-container">
+                            <div class="current-photo">
+                                <img src="${currentUser.profilePic}" id="currentProfilePic" 
+                                     onerror="this.src='https://via.placeholder.com/150/00bcd4/ffffff?text=User'">
+                                <span>Current Photo</span>
+                            </div>
+                            <div class="upload-actions">
+                                <input type="file" id="editProfilePic" accept="image/*" style="display: none;">
+                                <button type="button" class="upload-btn" onclick="document.getElementById('editProfilePic').click()">
+                                    <i class="fas fa-camera"></i> Change Photo
+                                </button>
+                                <div class="image-preview" id="newPhotoPreview" style="display: none;">
+                                    <img id="newProfilePreview">
+                                    <span>New Photo</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="cancel-btn" onclick="this.closest('.edit-profile-modal').remove()">Cancel</button>
+                        <button type="submit" class="save-btn">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Add modal styles
+    if (!document.querySelector('#edit-profile-styles')) {
+        const styles = document.createElement('style');
+        styles.id = 'edit-profile-styles';
+        styles.textContent = `
+            .edit-profile-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                padding: 20px;
+            }
+            
+            .edit-profile-modal .modal-content {
+                background: var(--card-bg);
+                border-radius: 15px;
+                width: 100%;
+                max-width: 500px;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            }
+            
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 25px 30px;
+                border-bottom: 1px solid var(--nav-bg);
+            }
+            
+            .modal-header h3 {
+                color: var(--accent-color);
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .close-modal {
+                background: none;
+                border: none;
+                color: var(--text-color);
+                font-size: 24px;
+                cursor: pointer;
+                padding: 5px;
+                border-radius: 50%;
+                width: 35px;
+                height: 35px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .close-modal:hover {
+                background: var(--nav-bg);
+            }
+            
+            .modal-body {
+                padding: 30px;
+            }
+            
+            .form-group {
+                margin-bottom: 25px;
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                color: var(--text-color);
+                font-weight: 600;
+            }
+            
+            .form-group input,
+            .form-group textarea {
+                width: 100%;
+                padding: 12px 15px;
+                border: 2px solid var(--nav-bg);
+                border-radius: 8px;
+                background: var(--nav-bg);
+                color: var(--text-color);
+                font-size: 1em;
+                transition: all 0.3s ease;
+            }
+            
+            .form-group input:focus,
+            .form-group textarea:focus {
+                outline: none;
+                border-color: var(--accent-color);
+                background: var(--bg-color);
+            }
+            
+            .file-upload-container {
+                display: flex;
+                gap: 20px;
+                align-items: flex-start;
+            }
+            
+            .current-photo,
+            .image-preview {
+                text-align: center;
+                flex: 1;
+            }
+            
+            .current-photo img,
+            .image-preview img {
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 3px solid var(--accent-color);
+                margin-bottom: 8px;
+            }
+            
+            .current-photo span,
+            .image-preview span {
+                display: block;
+                color: #9ca3af;
+                font-size: 0.9em;
+            }
+            
+            .upload-actions {
+                flex: 2;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .upload-btn {
+                background: var(--accent-color);
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                justify-content: center;
+            }
+            
+            .upload-btn:hover {
+                background: var(--hover-color);
+                transform: translateY(-2px);
+            }
+            
+            .form-actions {
+                display: flex;
+                gap: 15px;
+                margin-top: 30px;
+            }
+            
+            .cancel-btn,
+            .save-btn {
+                flex: 1;
+                padding: 12px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 1em;
+                transition: all 0.3s ease;
+            }
+            
+            .cancel-btn {
+                background: var(--nav-bg);
+                color: var(--text-color);
+                border: 2px solid transparent;
+            }
+            
+            .cancel-btn:hover {
+                border-color: var(--accent-color);
+            }
+            
+            .save-btn {
+                background: var(--accent-color);
+                color: white;
+            }
+            
+            .save-btn:hover {
+                background: var(--hover-color);
+                transform: translateY(-2px);
+            }
+            
+            @media (max-width: 768px) {
+                .file-upload-container {
+                    flex-direction: column;
+                    gap: 15px;
+                }
+                
+                .upload-actions {
+                    width: 100%;
+                }
+                
+                .form-actions {
+                    flex-direction: column;
+                }
+            }
+        `;
+        document.head.appendChild(styles);
+    }
+
+    // Handle profile picture change
+    document.getElementById('editProfilePic').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewImg = document.getElementById('newProfilePreview');
+                const previewContainer = document.getElementById('newPhotoPreview');
+                
+                previewImg.src = e.target.result;
+                previewContainer.style.display = 'block';
+                
+                showNotification('New profile photo selected!', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Handle form submission
+    document.getElementById('editProfileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('editUsername').value.trim();
+        const email = document.getElementById('editEmail').value.trim();
+        const bio = document.getElementById('editBio').value.trim();
+        const profilePicInput = document.getElementById('editProfilePic');
+        
+        if (!username) {
+            showNotification('Please enter a username!', 'error');
+            return;
+        }
+
+        // Update user data
+        const updatedUser = {
+            ...currentUser,
+            username: username,
+            email: email,
+            bio: bio
+        };
+
+        // Handle new profile picture
+        if (profilePicInput.files[0]) {
+            const file = profilePicInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                updatedUser.profilePic = e.target.result;
+                saveProfileChanges(updatedUser, modal);
+            };
+            
+            reader.onerror = function() {
+                showNotification('Error reading profile picture!', 'error');
+            };
+            
+            reader.readAsDataURL(file);
+        } else {
+            saveProfileChanges(updatedUser, modal);
+        }
+    });
+}
+
+function saveProfileChanges(updatedUser, modal) {
+    // Update all posts by this user with new username and profile pic
+    const allPosts = JSON.parse(localStorage.getItem('arzPosts')) || [];
+    const updatedPosts = allPosts.map(post => {
+        if (post.author === updatedUser.username || post.author === updatedUser.oldUsername) {
+            return {
+                ...post,
+                author: updatedUser.username,
+                authorPic: updatedUser.profilePic
+            };
+        }
+        return post;
+    });
+    
+    // Update comments by this user
+    updatedPosts.forEach(post => {
+        if (post.comments) {
+            post.comments.forEach(comment => {
+                if (comment.username === updatedUser.username || comment.username === updatedUser.oldUsername) {
+                    comment.username = updatedUser.username;
+                    comment.profilePic = updatedUser.profilePic;
+                }
+            });
+        }
+    });
+    
+    // Save updated data
+    localStorage.setItem('arzUser', JSON.stringify(updatedUser));
+    localStorage.setItem('arzPosts', JSON.stringify(updatedPosts));
+    
+    // Close modal and refresh profile
+    modal.remove();
+    showNotification('✅ Profile updated successfully!', 'success');
+    
+    // Refresh the profile page after a short delay
+    setTimeout(() => {
+        if (document.querySelector('.profile-page')) {
+            renderUserProfile();
+        }
+    }, 1000);
+}
+
+// Also update the renderUserProfile function to include bio
+function renderUserProfile() {
+    const profileContainer = document.querySelector('.profile-page');
+    if (!profileContainer) return;
+    
+    const currentUser = JSON.parse(localStorage.getItem('arzUser')) || {
+        username: "Guest",
+        profilePic: "https://via.placeholder.com/150/00bcd4/ffffff?text=User",
+        email: "Not set",
+        bio: "Creative soul sharing art, poetry, and dreams with the world. ✨"
+    };
+    
+    // Get user's posts
+    const allPosts = JSON.parse(localStorage.getItem('arzPosts')) || [];
+    const userPosts = allPosts.filter(post => post.author === currentUser.username);
+    
+    profileContainer.innerHTML = `
+        <div class="profile-header">
+            <div class="profile-image-section">
+                <img src="${currentUser.profilePic}" alt="Profile" class="profile-large" 
+                     onerror="this.src='https://via.placeholder.com/150/00bcd4/ffffff?text=User'">
+                <button class="edit-profile-btn" onclick="editProfile()">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </button>
+            </div>
+            
+            <div class="profile-info">
+                <h2>${currentUser.username}</h2>
+                <p class="user-email">${currentUser.email || "Email not set"}</p>
+                <p class="user-bio">${currentUser.bio || "Creative soul sharing art, poetry, and dreams with the world. ✨"}</p>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-number">${userPosts.length}</span>
+                        <span class="stat-label">Posts</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">${calculateTotalLikes(userPosts)}</span>
+                        <span class="stat-label">Likes</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">${calculateTotalComments(userPosts)}</span>
+                        <span class="stat-label">Comments</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">${currentUser.following ? currentUser.following.length : 0}</span>
+                        <span class="stat-label">Following</span>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    <button class="action-btn primary" onclick="window.location.href='upload.html'">
+                        <i class="fas fa-plus"></i> Create New Post
+                    </button>
+                    <button class="action-btn secondary" onclick="shareProfile()">
+                        <i class="fas fa-share-alt"></i> Share Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="profile-content">
+            <div class="content-section">
+                <h3><i class="fas fa-images"></i> My Creations</h3>
+                
+                ${userPosts.length > 0 ? `
+                    <div class="posts-grid">
+                        ${userPosts.map(post => `
+                            <div class="profile-post-card" onclick="viewPost(${post.id})">
+                                ${post.image ? `
+                                    <img src="${post.image}" alt="${post.title}" class="post-thumbnail"
+                                         onerror="this.style.display='none'">
+                                ` : ''}
+                                <div class="post-content">
+                                    <h4>${post.title}</h4>
+                                    <p class="post-category">${post.category}</p>
+                                    <p class="post-excerpt">${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}</p>
+                                    <div class="post-meta">
+                                        <span><i class="fas fa-heart"></i> ${post.likes || 0}</span>
+                                        <span><i class="fas fa-comment"></i> ${post.comments ? post.comments.length : 0}</span>
+                                        <span><i class="fas fa-eye"></i> ${post.views || 0}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : `
+                    <div class="empty-state">
+                        <i class="fas fa-camera"></i>
+                        <h4>No Posts Yet</h4>
+                        <p>Share your first creation with the world!</p>
+                        <button class="create-first-post" onclick="window.location.href='upload.html'">
+                            Create Your First Post
+                        </button>
+                    </div>
+                `}
+            </div>
+            
+            <div class="content-section">
+                <h3><i class="fas fa-bookmark"></i> Bookmarked Posts</h3>
+                <div class="bookmarks-section">
+                    ${currentUser.bookmarks && currentUser.bookmarks.length > 0 ? `
+                        <div class="bookmarks-list">
+                            ${currentUser.bookmarks.map(bookmarkId => {
+                                const bookmarkedPost = allPosts.find(p => p.id === bookmarkId);
+                                return bookmarkedPost ? `
+                                    <div class="bookmark-item" onclick="viewPost(${bookmarkedPost.id})">
+                                        <div class="bookmark-info">
+                                            <h5>${bookmarkedPost.title}</h5>
+                                            <p>By ${bookmarkedPost.author}</p>
+                                        </div>
+                                        <i class="fas fa-bookmark bookmarked"></i>
+                                    </div>
+                                ` : '';
+                            }).join('')}
+                        </div>
+                    ` : `
+                        <div class="empty-state">
+                            <i class="fas fa-bookmark"></i>
+                            <p>No bookmarks yet</p>
+                            <small>Bookmark posts you love to find them later</small>
+                        </div>
+                    `}
+                </div>
+            </div>
+        </div>
+    `;
+}
