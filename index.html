@@ -93,5 +93,34 @@
   </footer>
 
   <script src="app.js"></script>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "your-api-key",
+    authDomain: "arz-backend.firebaseapp.com",
+    projectId: "arz-backend",
+    storageBucket: "arz-backend.appspot.com",
+    messagingSenderId: "XXXXXXX",
+    appId: "XXXXXXXX"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Example: Add data
+  async function addUser(name, email) {
+    await addDoc(collection(db, "users"), { name, email });
+  }
+
+  // Example: Get data
+  async function getUsers() {
+    const snapshot = await getDocs(collection(db, "users"));
+    snapshot.forEach(doc => console.log(doc.id, doc.data()));
+  }
+</script>
+
 </body>
+
 </html>
