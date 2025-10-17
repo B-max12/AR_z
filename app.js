@@ -1,3 +1,6 @@
+// 🌐 App Configuration - YOUR LOCAL BACKEND
+const API_BASE_URL = "http://127.0.0.1:5000";
+
 // 🧠 Arz App – Complete JS Functionality with Advanced Features
 let user = JSON.parse(localStorage.getItem("arzUser")) || { 
     username: "Guest", 
@@ -65,6 +68,291 @@ function initializeApp() {
     if (document.getElementById('searchInput')) {
         initializeSearch();
     }
+}
+
+// 🌐 Backend API Functions - LOCAL BACKEND
+async function makeAPIRequest(endpoint, options = {}) {
+    try {
+        const url = `${API_BASE_URL}${endpoint}`;
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            },
+            ...options
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('API Request failed:', error);
+        // Fallback to localStorage
+        return { success: false, message: 'Backend not available' };
+    }
+}
+
+// 👤 User Management with Backend
+async function registerUser(userData) {
+    try {
+        const response = await makeAPIRequest('/api/register', {
+            method: 'POST',
+            body: JSON.stringify(userData)
+        });
+        
+        if (response.success) {
+            return response.user;
+        } else {
+            // Fallback to localStorage
+            return registerUserInLocalStorage(userData);
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        // Fallback to localStorage
+        return registerUserInLocalStorage(userData);
+    }
+}
+
+function registerUserInLocalStorage(userData) {
+    const newUser = {
+        ...userData,
+        following: [],
+        bookmarks: []
+    };
+    
+    localStorage.setItem('arzUser', JSON.stringify(newUser));
+    user = newUser;
+    return newUser;
+}
+
+async function loginUser(email, password) {
+    try {
+        const response = await makeAPIRequest('/api/login', {
+            method: 'POST',
+            body: JSON.stringify({ email, password })
+        });
+        
+        if (response.success) {
+            return response.user;
+        } else {
+            // Fallback to localStorage
+            return loginUserInLocalStorage(email, password);
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        // Fallback to localStorage
+        return loginUserInLocalStorage(email, password);
+    }
+}
+
+function loginUserInLocalStorage(email, password) {
+    const storedUser = localStorage.getItem('arzUser');
+    if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        if (userData.email === email && userData.password === password) {
+            user = userData;
+            return userData;
+        }
+    }
+    throw new Error('Invalid email or password');
+}
+
+// 📝 Update Registration Form for Backend
+function setupRegisterForm() {
+    const form = document.getElementById('registerForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const profilePicInput = document.getElementById('profilePic');
+        
+        if (!username || !email || !password) {
+            showNotification('Please fill all fields!', 'error');
+            return;
+        }
+        
+        if (!profilePicInput.files[0]) {
+            showNotification('Please upload a profile picture!', 'error');
+            return;
+        }
+
+        try {
+            // Convert profile picture to base64
+            const profilePicBase64 = await fileToBase64(profilePicInput.files[0]);
+
+            const userData = {
+                username: username,
+                email: email,
+                password: password,
+                profilePic: profilePicBase64
+            };
+
+            const newUser = await registerUser(userData);
+            
+            showNotification('Account created successfully! Welcome to Arz!', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Registration error:', error);
+            showNotification(`Registration failed: ${error.message}`, 'error');
+        }
+    });
+}
+
+// 📝 Update Login Form for Backend
+function setupLoginForm() {
+    const form = document.querySelector('#login form');
+    if (!form) return;
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = form.querySelector('input[type="email"]').value;
+        const password = form.querySelector('input[type="password"]').value;
+        
+        if (!email || !password) {
+            showNotification('Please fill all fields!', 'error');
+            return;
+        }
+
+        try {
+            const loggedInUser = await loginUser(email, password);
+            showNotification('Login successful!', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+        } catch (error) {
+            console.error('Login error:', error);
+            showNotification(`Login failed: ${error.message}`, 'error');
+        }
+    });
+}
+
+// 📝 Update Upload Form for Backend
+function setupUploadForm() {
+    const form = document.getElementById('uploadForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const title = document.getElementById('title').value;
+        const category = document.getElementById('category').value;
+        const content = document.getElementById('description').value;
+        const fileInput = document.getElementById('fileInput');
+        
+        if (!title || !category || !content) {
+            showNotification('Please fill all fields!', 'error');
+            return;
+        }
+        
+        if (fileInput.files.length === 0) {
+            showNotification('Please select an image!', 'error');
+            return;
+        }
+
+        try {
+            // Convert image to base64 for backend
+            const imageBase64 = await fileToBase64(fileInput.files[0]);
+
+            const postData = {
+                title: title,
+                content: content,
+                category: category,
+                image: imageBase64,
+                author: user.username,
+                authorPic: user.profilePic
+            };
+
+            // Try backend first
+            const response = await makeAPIRequest('/api/posts', {
+                method: 'POST',
+                body: JSON.stringify(postData)
+            });
+
+            if (response.success) {
+                posts.unshift(response.post);
+                localStorage.setItem("arzPosts", JSON.stringify(posts));
+            } else {
+                // Fallback to localStorage
+                createPostInLocalStorage(postData);
+            }
+            
+            showNotification('Post created successfully!', 'success');
+            form.reset();
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Upload error:', error);
+            // Fallback to localStorage
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const newPost = {
+                    id: Date.now(),
+                    title: title,
+                    content: content,
+                    category: category,
+                    image: e.target.result,
+                    likes: 0,
+                    dislikes: 0,
+                    comments: [],
+                    author: user.username,
+                    authorPic: user.profilePic,
+                    timestamp: new Date().toISOString(),
+                    views: 0
+                };
+                
+                posts.unshift(newPost);
+                localStorage.setItem("arzPosts", JSON.stringify(posts));
+                
+                showNotification('Post created successfully!', 'success');
+                form.reset();
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            };
+            
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+// File to Base64 converter
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+}
+
+function createPostInLocalStorage(postData) {
+    const newPost = {
+        id: Date.now(),
+        ...postData,
+        likes: 0,
+        dislikes: 0,
+        comments: [],
+        timestamp: new Date().toISOString(),
+        views: 0
+    };
+    
+    posts.unshift(newPost);
+    localStorage.setItem("arzPosts", JSON.stringify(posts));
+    return newPost;
 }
 
 // ✅ FIXED: Profile Photo Preview Feature
@@ -545,59 +833,6 @@ function updateBookmarkButton(postId) {
     }
 }
 
-// 📝 Register Form Setup
-function setupRegisterForm() {
-    const form = document.getElementById('registerForm');
-    if (!form) return;
-    
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const username = document.getElementById('username').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const profilePicInput = document.getElementById('profilePic');
-        
-        if (!username || !email || !password) {
-            showNotification('Please fill all fields!', 'error');
-            return;
-        }
-        
-        if (!profilePicInput.files[0]) {
-            showNotification('Please upload a profile picture!', 'error');
-            return;
-        }
-
-        const file = profilePicInput.files[0];
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            const newUser = {
-                username: username,
-                email: email,
-                password: password,
-                profilePic: e.target.result,
-                following: [],
-                bookmarks: []
-            };
-            
-            localStorage.setItem('arzUser', JSON.stringify(newUser));
-            user = newUser;
-            
-            showNotification('Account created successfully! Welcome to Arz!', 'success');
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 2000);
-        };
-        
-        reader.onerror = function() {
-            showNotification('Error reading profile picture!', 'error');
-        };
-        
-        reader.readAsDataURL(file);
-    });
-}
-
 // 💰 Donation Functionality
 function setupDonation() {
     const donateButtons = document.querySelectorAll('.donate-options button');
@@ -638,99 +873,6 @@ function setupDonation() {
             donateButtons.forEach(b => b.style.background = 'var(--accent-color)');
         });
     }
-}
-
-// 📤 Upload Form Setup
-function setupUploadForm() {
-    const form = document.getElementById('uploadForm');
-    if (!form) return;
-    
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const title = document.getElementById('title').value;
-        const category = document.getElementById('category').value;
-        const content = document.getElementById('description').value;
-        const fileInput = document.getElementById('fileInput');
-        
-        if (!title || !category || !content) {
-            showNotification('Please fill all fields!', 'error');
-            return;
-        }
-        
-        if (fileInput.files.length === 0) {
-            showNotification('Please select an image!', 'error');
-            return;
-        }
-
-        const file = fileInput.files[0];
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            const newPost = {
-                id: Date.now(),
-                title: title,
-                content: content,
-                category: category,
-                image: e.target.result,
-                likes: 0,
-                dislikes: 0,
-                comments: [],
-                author: user.username,
-                authorPic: user.profilePic,
-                timestamp: new Date().toISOString(),
-                views: 0
-            };
-            
-            posts.unshift(newPost);
-            localStorage.setItem("arzPosts", JSON.stringify(posts));
-            
-            showNotification('Post created successfully!', 'success');
-            form.reset();
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
-        };
-        
-        reader.onerror = function() {
-            showNotification('Error reading file!', 'error');
-        };
-        
-        reader.readAsDataURL(file);
-    });
-}
-
-// 🔐 Login Form Setup
-function setupLoginForm() {
-    const form = document.querySelector('#login form');
-    if (!form) return;
-    
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const email = form.querySelector('input[type="email"]').value;
-        const password = form.querySelector('input[type="password"]').value;
-        
-        if (!email || !password) {
-            showNotification('Please fill all fields!', 'error');
-            return;
-        }
-        
-        const storedUser = localStorage.getItem('arzUser');
-        if (storedUser) {
-            const userData = JSON.parse(storedUser);
-            if (userData.email === email && userData.password === password) {
-                showNotification('Login successful!', 'success');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1000);
-            } else {
-                showNotification('Invalid email or password!', 'error');
-            }
-        } else {
-            showNotification('No user found. Please register first.', 'error');
-        }
-    });
 }
 
 // 📧 Contact Form Setup
@@ -817,7 +959,8 @@ function openImageModal(imageSrc) {
         if (e.target === modal) modal.remove();
     };
 }
-// 👤 Profile Page Rendering - Add this to your existing app.js
+
+// 👤 Profile Page Rendering
 function renderUserProfile() {
     const profileContainer = document.querySelector('.profile-page');
     if (!profileContainer) return;
@@ -825,7 +968,8 @@ function renderUserProfile() {
     const currentUser = JSON.parse(localStorage.getItem('arzUser')) || {
         username: "Guest",
         profilePic: "https://via.placeholder.com/150/00bcd4/ffffff?text=User",
-        email: "Not set"
+        email: "Not set",
+        bio: "Creative soul sharing art, poetry, and dreams with the world. ✨"
     };
     
     // Get user's posts
@@ -845,7 +989,7 @@ function renderUserProfile() {
             <div class="profile-info">
                 <h2>${currentUser.username}</h2>
                 <p class="user-email">${currentUser.email || "Email not set"}</p>
-                <p class="user-bio">Creative soul sharing art, poetry, and dreams with the world. ✨</p>
+                <p class="user-bio">${currentUser.bio || "Creative soul sharing art, poetry, and dreams with the world. ✨"}</p>
                 
                 <div class="stats">
                     <div class="stat-item">
@@ -978,7 +1122,8 @@ function viewPost(postId) {
     showNotification('🔍 Opening post...', 'info');
     // You can implement post detail view here
 }
-// 👤 Edit Profile Feature - Replace the existing editProfile function
+
+// 👤 Edit Profile Feature
 function editProfile() {
     const currentUser = JSON.parse(localStorage.getItem('arzUser')) || {
         username: "Guest",
@@ -1045,214 +1190,6 @@ function editProfile() {
     `;
 
     document.body.appendChild(modal);
-
-    // Add modal styles
-    if (!document.querySelector('#edit-profile-styles')) {
-        const styles = document.createElement('style');
-        styles.id = 'edit-profile-styles';
-        styles.textContent = `
-            .edit-profile-modal {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.8);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-                padding: 20px;
-            }
-            
-            .edit-profile-modal .modal-content {
-                background: var(--card-bg);
-                border-radius: 15px;
-                width: 100%;
-                max-width: 500px;
-                max-height: 90vh;
-                overflow-y: auto;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            }
-            
-            .modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 25px 30px;
-                border-bottom: 1px solid var(--nav-bg);
-            }
-            
-            .modal-header h3 {
-                color: var(--accent-color);
-                margin: 0;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            
-            .close-modal {
-                background: none;
-                border: none;
-                color: var(--text-color);
-                font-size: 24px;
-                cursor: pointer;
-                padding: 5px;
-                border-radius: 50%;
-                width: 35px;
-                height: 35px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .close-modal:hover {
-                background: var(--nav-bg);
-            }
-            
-            .modal-body {
-                padding: 30px;
-            }
-            
-            .form-group {
-                margin-bottom: 25px;
-            }
-            
-            .form-group label {
-                display: block;
-                margin-bottom: 8px;
-                color: var(--text-color);
-                font-weight: 600;
-            }
-            
-            .form-group input,
-            .form-group textarea {
-                width: 100%;
-                padding: 12px 15px;
-                border: 2px solid var(--nav-bg);
-                border-radius: 8px;
-                background: var(--nav-bg);
-                color: var(--text-color);
-                font-size: 1em;
-                transition: all 0.3s ease;
-            }
-            
-            .form-group input:focus,
-            .form-group textarea:focus {
-                outline: none;
-                border-color: var(--accent-color);
-                background: var(--bg-color);
-            }
-            
-            .file-upload-container {
-                display: flex;
-                gap: 20px;
-                align-items: flex-start;
-            }
-            
-            .current-photo,
-            .image-preview {
-                text-align: center;
-                flex: 1;
-            }
-            
-            .current-photo img,
-            .image-preview img {
-                width: 100px;
-                height: 100px;
-                border-radius: 50%;
-                object-fit: cover;
-                border: 3px solid var(--accent-color);
-                margin-bottom: 8px;
-            }
-            
-            .current-photo span,
-            .image-preview span {
-                display: block;
-                color: #9ca3af;
-                font-size: 0.9em;
-            }
-            
-            .upload-actions {
-                flex: 2;
-                display: flex;
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .upload-btn {
-                background: var(--accent-color);
-                color: white;
-                border: none;
-                padding: 10px 15px;
-                border-radius: 8px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                justify-content: center;
-            }
-            
-            .upload-btn:hover {
-                background: var(--hover-color);
-                transform: translateY(-2px);
-            }
-            
-            .form-actions {
-                display: flex;
-                gap: 15px;
-                margin-top: 30px;
-            }
-            
-            .cancel-btn,
-            .save-btn {
-                flex: 1;
-                padding: 12px;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 1em;
-                transition: all 0.3s ease;
-            }
-            
-            .cancel-btn {
-                background: var(--nav-bg);
-                color: var(--text-color);
-                border: 2px solid transparent;
-            }
-            
-            .cancel-btn:hover {
-                border-color: var(--accent-color);
-            }
-            
-            .save-btn {
-                background: var(--accent-color);
-                color: white;
-            }
-            
-            .save-btn:hover {
-                background: var(--hover-color);
-                transform: translateY(-2px);
-            }
-            
-            @media (max-width: 768px) {
-                .file-upload-container {
-                    flex-direction: column;
-                    gap: 15px;
-                }
-                
-                .upload-actions {
-                    width: 100%;
-                }
-                
-                .form-actions {
-                    flex-direction: column;
-                }
-            }
-        `;
-        document.head.appendChild(styles);
-    }
 
     // Handle profile picture change
     document.getElementById('editProfilePic').addEventListener('change', function(e) {
@@ -1355,133 +1292,4 @@ function saveProfileChanges(updatedUser, modal) {
             renderUserProfile();
         }
     }, 1000);
-}
-
-// Also update the renderUserProfile function to include bio
-function renderUserProfile() {
-    const profileContainer = document.querySelector('.profile-page');
-    if (!profileContainer) return;
-    
-    const currentUser = JSON.parse(localStorage.getItem('arzUser')) || {
-        username: "Guest",
-        profilePic: "https://via.placeholder.com/150/00bcd4/ffffff?text=User",
-        email: "Not set",
-        bio: "Creative soul sharing art, poetry, and dreams with the world. ✨"
-    };
-    
-    // Get user's posts
-    const allPosts = JSON.parse(localStorage.getItem('arzPosts')) || [];
-    const userPosts = allPosts.filter(post => post.author === currentUser.username);
-    
-    profileContainer.innerHTML = `
-        <div class="profile-header">
-            <div class="profile-image-section">
-                <img src="${currentUser.profilePic}" alt="Profile" class="profile-large" 
-                     onerror="this.src='https://via.placeholder.com/150/00bcd4/ffffff?text=User'">
-                <button class="edit-profile-btn" onclick="editProfile()">
-                    <i class="fas fa-edit"></i> Edit Profile
-                </button>
-            </div>
-            
-            <div class="profile-info">
-                <h2>${currentUser.username}</h2>
-                <p class="user-email">${currentUser.email || "Email not set"}</p>
-                <p class="user-bio">${currentUser.bio || "Creative soul sharing art, poetry, and dreams with the world. ✨"}</p>
-                
-                <div class="stats">
-                    <div class="stat-item">
-                        <span class="stat-number">${userPosts.length}</span>
-                        <span class="stat-label">Posts</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">${calculateTotalLikes(userPosts)}</span>
-                        <span class="stat-label">Likes</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">${calculateTotalComments(userPosts)}</span>
-                        <span class="stat-label">Comments</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number">${currentUser.following ? currentUser.following.length : 0}</span>
-                        <span class="stat-label">Following</span>
-                    </div>
-                </div>
-                
-                <div class="profile-actions">
-                    <button class="action-btn primary" onclick="window.location.href='upload.html'">
-                        <i class="fas fa-plus"></i> Create New Post
-                    </button>
-                    <button class="action-btn secondary" onclick="shareProfile()">
-                        <i class="fas fa-share-alt"></i> Share Profile
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="profile-content">
-            <div class="content-section">
-                <h3><i class="fas fa-images"></i> My Creations</h3>
-                
-                ${userPosts.length > 0 ? `
-                    <div class="posts-grid">
-                        ${userPosts.map(post => `
-                            <div class="profile-post-card" onclick="viewPost(${post.id})">
-                                ${post.image ? `
-                                    <img src="${post.image}" alt="${post.title}" class="post-thumbnail"
-                                         onerror="this.style.display='none'">
-                                ` : ''}
-                                <div class="post-content">
-                                    <h4>${post.title}</h4>
-                                    <p class="post-category">${post.category}</p>
-                                    <p class="post-excerpt">${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}</p>
-                                    <div class="post-meta">
-                                        <span><i class="fas fa-heart"></i> ${post.likes || 0}</span>
-                                        <span><i class="fas fa-comment"></i> ${post.comments ? post.comments.length : 0}</span>
-                                        <span><i class="fas fa-eye"></i> ${post.views || 0}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                ` : `
-                    <div class="empty-state">
-                        <i class="fas fa-camera"></i>
-                        <h4>No Posts Yet</h4>
-                        <p>Share your first creation with the world!</p>
-                        <button class="create-first-post" onclick="window.location.href='upload.html'">
-                            Create Your First Post
-                        </button>
-                    </div>
-                `}
-            </div>
-            
-            <div class="content-section">
-                <h3><i class="fas fa-bookmark"></i> Bookmarked Posts</h3>
-                <div class="bookmarks-section">
-                    ${currentUser.bookmarks && currentUser.bookmarks.length > 0 ? `
-                        <div class="bookmarks-list">
-                            ${currentUser.bookmarks.map(bookmarkId => {
-                                const bookmarkedPost = allPosts.find(p => p.id === bookmarkId);
-                                return bookmarkedPost ? `
-                                    <div class="bookmark-item" onclick="viewPost(${bookmarkedPost.id})">
-                                        <div class="bookmark-info">
-                                            <h5>${bookmarkedPost.title}</h5>
-                                            <p>By ${bookmarkedPost.author}</p>
-                                        </div>
-                                        <i class="fas fa-bookmark bookmarked"></i>
-                                    </div>
-                                ` : '';
-                            }).join('')}
-                        </div>
-                    ` : `
-                        <div class="empty-state">
-                            <i class="fas fa-bookmark"></i>
-                            <p>No bookmarks yet</p>
-                            <small>Bookmark posts you love to find them later</small>
-                        </div>
-                    `}
-                </div>
-            </div>
-        </div>
-    `;
 }
